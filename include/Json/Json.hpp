@@ -45,6 +45,14 @@ namespace Json {
         Json(nullptr_t);
 
         /**
+         * This constructs a JSON object consisting of a boolean value.
+         *
+         * @param[in] value
+         *     This is the object to wrap in JSON.
+         */
+        Json(bool value);
+
+        /**
          * This is the equality comparison operator.
          *
          * @param[in] other
@@ -68,10 +76,10 @@ namespace Json {
          * This method returns a new JSON object constructed by parsing
          * the JSON object from the given string.
          *
-         * @param[in] format
+         * @param[in] encoding
          *     This is the string format of the JSON object to construct.
          */
-        static Json FromString(const std::string& format);
+        static Json FromString(const std::string& encoding);
 
         // Private properties
     private:

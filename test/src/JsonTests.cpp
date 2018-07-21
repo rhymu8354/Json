@@ -19,3 +19,16 @@ TEST(JsonTests, ToNull) {
     const auto json = Json::Json::FromString("null");
     ASSERT_TRUE(json == nullptr);
 }
+
+TEST(JsonTests, FromBoolean) {
+    Json::Json jsonTrue(true), jsonFalse(false);
+    ASSERT_EQ("true", jsonTrue.ToString());
+    ASSERT_EQ("false", jsonFalse.ToString());
+}
+
+TEST(JsonTests, ToBoolean) {
+    const auto jsonTrue = Json::Json::FromString("true");
+    const auto jsonFalse = Json::Json::FromString("false");
+    ASSERT_TRUE(jsonTrue == true);
+    ASSERT_TRUE(jsonFalse == false);
+}
