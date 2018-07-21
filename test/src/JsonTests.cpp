@@ -174,8 +174,21 @@ TEST(JsonTests, EncodingOfInvalidJson) {
     ASSERT_EQ("(Invalid JSON: \"This is bad: \\u123X\")", json.ToEncoding());
 }
 
-TEST(JsonTests, DecodeArray) {
+TEST(JsonTests, DecodeArrayNoWhitespace) {
     const std::string encoding("[1,\"Hello\",true]");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(Json::Json::Type::Array, json.GetType());
+    ASSERT_EQ(3, json.GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, json[0]->GetType());
+    EXPECT_EQ(1, (int)*json[0]);
+    EXPECT_EQ(Json::Json::Type::String, json[1]->GetType());
+    EXPECT_EQ("Hello", (std::string)*json[1]);
+    EXPECT_EQ(Json::Json::Type::Boolean, json[2]->GetType());
+    EXPECT_EQ(true, (bool)*json[2]);
+}
+
+TEST(JsonTests, DecodeArrayWithWhitespace) {
+    const std::string encoding(" [ 1 ,\r \t \"Hello\" \r\n ,\n true   ]  ");
     const auto json = Json::Json::FromEncoding(encoding);
     ASSERT_EQ(Json::Json::Type::Array, json.GetType());
     ASSERT_EQ(3, json.GetSize());

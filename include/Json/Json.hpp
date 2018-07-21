@@ -234,10 +234,11 @@ namespace Json {
          * This method returns a new JSON object constructed by parsing
          * the JSON object from the given encoding.
          *
-         * @param[in] encoding
+         * @param[in] encodingBeforeTrim
          *     This is the encoding of the JSON object to construct.
+         *     It may have whitespace characters in the margins.
          */
-        static Json FromEncoding(const std::string& encoding);
+        static Json FromEncoding(const std::string& encodingBeforeTrim);
 
         // Private properties
     private:
