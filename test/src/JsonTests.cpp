@@ -330,3 +330,16 @@ TEST(JsonTests, AddObjectToItself) {
     json.Add(std::move(json));
     EXPECT_EQ("[42,[42]]", json.ToEncoding());
 }
+
+TEST(JsonTests, ReassignValue) {
+    Json::Json json1(42);
+    Json::Json json2(Json::Json::Type::Array);
+    json2.Add(42);
+    json2.Add("Hello");
+    json1 = json2;
+    json1.Add(false);
+    json2.Remove(0);
+    json2.Add(true);
+    EXPECT_EQ("[42,\"Hello\",false]", json1.ToEncoding());
+    EXPECT_EQ("[\"Hello\",true]", json2.ToEncoding());
+}
