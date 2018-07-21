@@ -727,7 +727,7 @@ namespace Json {
     bool Json::operator==(const Json& other) const {
         if (impl_->type != other.impl_->type) {
             return false;
-        } else switch(impl_->type) {
+        } else switch (impl_->type) {
             case Type::Invalid: return true;
 
             case Type::Null: return true;
@@ -1061,7 +1061,7 @@ namespace Json {
         Json::Type type,
         std::ostream* os
     ) {
-        switch(type) {
+        switch (type) {
             case Json::Type::Invalid: {
                 *os << "Invalid";
             } break;
