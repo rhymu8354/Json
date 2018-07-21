@@ -612,7 +612,7 @@ namespace Json {
         }
     }
 
-    std::string Json::ToString(const EncodingOptions& options) const {
+    std::string Json::ToEncoding(const EncodingOptions& options) const {
         switch (impl_->type) {
             case Impl::Type::Null: return "null";
             case Impl::Type::Boolean: return impl_->booleanValue ? "true" : "false";
@@ -627,7 +627,7 @@ namespace Json {
         }
     }
 
-    Json Json::FromString(const std::string& encoding) {
+    Json Json::FromEncoding(const std::string& encoding) {
         if (encoding.empty()) {
             return Json();
         } else if (encoding[0] == '{') {

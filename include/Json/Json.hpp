@@ -162,25 +162,25 @@ namespace Json {
         operator double() const;
 
         /**
-         * This encodes the JSON object into its string format.
+         * This encodes the JSON object.
          *
          * @param[in] options
          *     This is used to configure various options having to do with
          *     encoding a Json object into its string format.
          *
          * @return
-         *     The string format of the JSON object is returned.
+         *     The encoding of the JSON object is returned.
          */
-        std::string ToString(const EncodingOptions& options = EncodingOptions()) const;
+        std::string ToEncoding(const EncodingOptions& options = EncodingOptions()) const;
 
         /**
          * This method returns a new JSON object constructed by parsing
-         * the JSON object from the given string.
+         * the JSON object from the given encoding.
          *
          * @param[in] encoding
-         *     This is the string format of the JSON object to construct.
+         *     This is the encoding of the JSON object to construct.
          */
-        static Json FromString(const std::string& encoding);
+        static Json FromEncoding(const std::string& encoding);
 
         // Private properties
     private:
