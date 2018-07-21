@@ -301,3 +301,25 @@ TEST(JsonTests, BuildAndEncodeObject) {
     json.Remove("answer");
     ASSERT_EQ("{\"Don't look here\":null,\"Hello\":\"World\",\"PogChamp\":true}", json.ToEncoding());
 }
+
+TEST(JsonTests, CompareArrays) {
+    const auto json1 = Json::Json::FromEncoding("[42, 7]");
+    const auto json2 = Json::Json::FromEncoding(" [42,7] ");
+    const auto json3 = Json::Json::FromEncoding(" [43,7] ");
+    EXPECT_EQ(json1, json2);
+    EXPECT_NE(json1, json3);
+    EXPECT_NE(json2, json3);
+}
+
+TEST(JsonTests, CompareObjects) {
+    const auto json1 = Json::Json::FromEncoding("{\"answer\":42}");
+    const auto json2 = Json::Json::FromEncoding("{\"answer\" :  42 }");
+    const auto json3 = Json::Json::FromEncoding("{\"answer\":19}");
+    const auto json4 = Json::Json::FromEncoding("{\"answer\":42, \"nothing\": null}");
+    const auto json5 = Json::Json::FromEncoding("{\"xyz\":42, \"123\": null}");
+    EXPECT_EQ(json1, json2);
+    EXPECT_NE(json1, json3);
+    EXPECT_NE(json2, json3);
+    EXPECT_NE(json1, json4);
+    EXPECT_NE(json5, json4);
+}

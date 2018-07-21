@@ -10,6 +10,7 @@
 #include <Json/Json.hpp>
 #include <map>
 #include <math.h>
+#include <set>
 #include <stack>
 #include <string>
 #include <SystemAbstractions/StringExtensions.hpp>
@@ -728,13 +729,60 @@ namespace Json {
             return false;
         } else switch(impl_->type) {
             case Type::Invalid: return true;
+
             case Type::Null: return true;
+
             case Type::Boolean: return impl_->booleanValue == other.impl_->booleanValue;
+
             case Type::String: return *impl_->stringValue == *other.impl_->stringValue;
+
             case Type::Integer: return impl_->integerValue == other.impl_->integerValue;
+
             case Type::FloatingPoint: return impl_->floatingPointValue == other.impl_->floatingPointValue;
+
+            case Type::Array: {
+                if (impl_->arrayValue->size() != other.impl_->arrayValue->size()) {
+                    return false;
+                }
+                for (size_t i = 0; i < impl_->arrayValue->size(); ++i) {
+                    if (*(*impl_->arrayValue)[i] != *(*other.impl_->arrayValue)[i]) {
+                        return false;
+                    }
+                }
+            } return true;
+
+            case Type::Object: {
+                std::set< std::string > keys;
+                for (const auto& entry: *impl_->objectValue) {
+                    (void)keys.insert(entry.first);
+                }
+                for (const auto& entry: *other.impl_->objectValue) {
+                    const auto otherEntry = keys.find(entry.first);
+                    if (otherEntry == keys.end()) {
+                        return false;
+                    }
+                    (void)keys.erase(entry.first);
+                }
+                if (!keys.empty()) {
+                    return false;
+                }
+                for (
+                    auto it = impl_->objectValue->begin();
+                    it != impl_->objectValue->end();
+                    ++it
+                ) {
+                    if (*it->second != *(*other.impl_->objectValue)[it->first]) {
+                        return false;
+                    }
+                }
+            } return true;
+
             default: return true;
         }
+    }
+
+    bool Json::operator!=(const Json& other) const {
+        return !(*this == other);
     }
 
     Json::operator bool() const {
