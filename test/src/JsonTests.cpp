@@ -186,3 +186,40 @@ TEST(JsonTests, DecodeArray) {
     EXPECT_EQ(Json::Json::Type::Boolean, json[2]->GetType());
     EXPECT_EQ(true, (bool)*json[2]);
 }
+
+TEST(JsonTests, DecodeArraysWithinArrays) {
+    const std::string encoding("[1,[2,3],4,[5,6,7]]");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(Json::Json::Type::Array, json.GetType());
+    ASSERT_EQ(4, json.GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, json[0]->GetType());
+    EXPECT_EQ(1, (int)*json[0]);
+    EXPECT_EQ(Json::Json::Type::Array, json[1]->GetType());
+    ASSERT_EQ(2, json[1]->GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, (*json[1])[0]->GetType());
+    EXPECT_EQ(2, (int)*(*json[1])[0]);
+    EXPECT_EQ(Json::Json::Type::Integer, (*json[1])[1]->GetType());
+    EXPECT_EQ(3, (int)*(*json[1])[1]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[2]->GetType());
+    EXPECT_EQ(4, (int)*json[2]);
+    EXPECT_EQ(Json::Json::Type::Array, json[3]->GetType());
+    ASSERT_EQ(3, json[3]->GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, (*json[3])[0]->GetType());
+    EXPECT_EQ(5, (int)*(*json[3])[0]);
+    EXPECT_EQ(Json::Json::Type::Integer, (*json[3])[1]->GetType());
+    EXPECT_EQ(6, (int)*(*json[3])[1]);
+    EXPECT_EQ(Json::Json::Type::Integer, (*json[3])[2]->GetType());
+    EXPECT_EQ(7, (int)*(*json[3])[2]);
+}
+
+TEST(JsonTests, DecodeUnterminatedOuterArray) {
+    const std::string encoding("[1,\"Hello\",true");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(Json::Json::Type::Invalid, json.GetType());
+}
+
+TEST(JsonTests, DecodeUnterminatedInnerString) {
+    const std::string encoding("[1,\"Hello,true]");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(Json::Json::Type::Invalid, json.GetType());
+}
