@@ -6,6 +6,7 @@
  * © 2018 by Richard Walters
  */
 
+#include <algorithm>
 #include <Json/Json.hpp>
 #include <map>
 #include <math.h>
@@ -660,9 +661,25 @@ namespace Json {
     Json::Json(Json&&) = default;
     Json& Json::operator=(Json&&) = default;
 
-    Json::Json()
+    Json::Json(Type type)
         : impl_(new Impl)
     {
+        impl_->type = type;
+        switch (type) {
+            case Type::String: {
+                impl_->stringValue = new std::string();
+            } break;
+
+            case Type::Array: {
+                impl_->arrayValue = new std::vector< std::shared_ptr< Json > >;
+            } break;
+
+            case Type::Object: {
+                impl_->objectValue = new std::map< std::string, std::shared_ptr< Json > >;
+            } break;
+
+            default: break;
+        }
     }
 
     Json::Json(nullptr_t)
@@ -809,6 +826,40 @@ namespace Json {
         return (*this)[std::string(key)];
     }
 
+    void Json::Add(Json&& value) {
+        if (impl_->type != Type::Array) {
+            return;
+        }
+        Insert(std::move(value), impl_->arrayValue->size());
+        impl_->encoding.clear();
+    }
+
+    void Json::Insert(Json&& value, size_t index) {
+        if (impl_->type != Type::Array) {
+            return;
+        }
+        (void)impl_->arrayValue->insert(
+            impl_->arrayValue->begin() + std::min(
+                index,
+                impl_->arrayValue->size()
+            ),
+            std::make_shared< Json >(std::move(value))
+        );
+        impl_->encoding.clear();
+    }
+
+    void Json::Remove(size_t index) {
+        if (impl_->type != Type::Array) {
+            return;
+        }
+        if (index < impl_->arrayValue->size()) {
+            impl_->arrayValue->erase(
+                impl_->arrayValue->begin() + index
+            );
+            impl_->encoding.clear();
+        }
+    }
+
     std::string Json::ToEncoding(const EncodingOptions& options) const {
         if (impl_->type == Type::Invalid) {
             return SystemAbstractions::sprintf(
@@ -843,6 +894,20 @@ namespace Json {
 
                 case Type::FloatingPoint: {
                     impl_->encoding = SystemAbstractions::sprintf("%lg", impl_->floatingPointValue);
+                } break;
+
+                case Type::Array: {
+                    impl_->encoding = '[';
+                    bool isFirst = true;
+                    for (const auto value: *impl_->arrayValue) {
+                        if (isFirst) {
+                            isFirst = false;
+                        } else {
+                            impl_->encoding += ',';
+                        }
+                        impl_->encoding += value->ToEncoding(options);
+                    }
+                    impl_->encoding += ']';
                 } break;
 
                 default: {

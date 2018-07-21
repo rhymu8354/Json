@@ -70,8 +70,15 @@ namespace Json {
     public:
         /**
          * This is the default constructor.
+         *
+         * @param type
+         *     This is the type of JSON value to create.
+         *
+         * @note
+         *     Setting the type is only useful for invalid, null,
+         *     and mutable (array and object) types.
          */
-        Json();
+        Json(Type type = Type::Invalid);
 
         /**
          * This constructs a JSON object consisting of the "null" literal.
@@ -286,6 +293,37 @@ namespace Json {
          *     in the JSON value, or if the JSON value isn't an object.
          */
         std::shared_ptr< Json > operator[](const char* key) const;
+
+        /**
+         * This method moves the given value to be at the end of the
+         * array, if the JSON value is an array.
+         *
+         * @param[in] value
+         *     This is the value to move to the end of the array.
+         */
+        void Add(Json&& value);
+
+        /**
+         * This method moves the given value to be at the given index of the
+         * array, if the JSON value is an array.  Any values previously at
+         * or after this index are moved forward one position.
+         *
+         * @param[in] value
+         *     This is the value to move into the array.
+         *
+         * @param[in] index
+         *     This is the position into which to move the given value.
+         */
+        void Insert(Json&& value, size_t index);
+
+        /**
+         * This method removes the value at the given index of the
+         * array, if the JSON value is an array.
+         *
+         * @param[in] index
+         *     This is the position of the value to remove.
+         */
+        void Remove(size_t index);
 
         /**
          * This encodes the JSON object.

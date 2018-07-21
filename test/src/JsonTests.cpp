@@ -276,3 +276,14 @@ TEST(JsonTests, NumericIndexNotArray) {
     const Json::Json json(42);
     ASSERT_TRUE(json[0] == nullptr);
 }
+
+TEST(JsonTests, BuildAndEncodeArray) {
+    Json::Json json(Json::Json::Type::Array);
+    json.Add(42);
+    json.Insert("Hello", 0);
+    json.Add(3);
+    json.Insert("World", 1);
+    ASSERT_EQ("[\"Hello\",\"World\",42,3]", json.ToEncoding());
+    json.Remove(1);
+    ASSERT_EQ("[\"Hello\",42,3]", json.ToEncoding());
+}
