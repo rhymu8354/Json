@@ -286,4 +286,18 @@ TEST(JsonTests, BuildAndEncodeArray) {
     ASSERT_EQ("[\"Hello\",\"World\",42,3]", json.ToEncoding());
     json.Remove(1);
     ASSERT_EQ("[\"Hello\",42,3]", json.ToEncoding());
+    json.Remove(0);
+    ASSERT_EQ("[42,3]", json.ToEncoding());
+}
+
+TEST(JsonTests, BuildAndEncodeObject) {
+    Json::Json json(Json::Json::Type::Object);
+    json.Set("answer", 42);
+    json.Set("Hello", 0);
+    json.Set("Hello", "World");
+    json.Set("PogChamp", true);
+    json.Set("Don't look here", nullptr);
+    ASSERT_EQ("{\"Don't look here\":null,\"Hello\":\"World\",\"PogChamp\":true,\"answer\":42}", json.ToEncoding());
+    json.Remove("answer");
+    ASSERT_EQ("{\"Don't look here\":null,\"Hello\":\"World\",\"PogChamp\":true}", json.ToEncoding());
 }
