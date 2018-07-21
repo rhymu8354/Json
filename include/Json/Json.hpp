@@ -66,6 +66,22 @@ namespace Json {
         Json(bool value);
 
         /**
+         * This constructs a JSON object consisting of an integer value.
+         *
+         * @param[in] value
+         *     This is the object to wrap in JSON.
+         */
+        Json(int value);
+
+        /**
+         * This constructs a JSON object consisting of a floating point value.
+         *
+         * @param[in] value
+         *     This is the object to wrap in JSON.
+         */
+        Json(double value);
+
+        /**
          * This constructs a JSON object consisting of a C string value.
          *
          * @param[in] value
@@ -120,6 +136,30 @@ namespace Json {
          *     it's a string and its value is the empty string.
          */
         operator std::string() const;
+
+        /**
+         * This is the typecast to integer operator for the class.
+         *
+         * @return
+         *     The integer equivalent of the JSON object is returned.
+         *
+         * @retval 0
+         *     This is returned if the JSON object is not an integer, or
+         *     it's an integer and its value is zero.
+         */
+        operator int() const;
+
+        /**
+         * This is the typecast to floating-point operator for the class.
+         *
+         * @return
+         *     The floating-point equivalent of the JSON object is returned.
+         *
+         * @retval 0.0
+         *     This is returned if the JSON object is not a floating-point
+         *     value, or it's a floating-point value and its value is zero.
+         */
+        operator double() const;
 
         /**
          * This encodes the JSON object into its string format.

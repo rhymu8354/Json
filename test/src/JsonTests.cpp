@@ -46,6 +46,33 @@ TEST(JsonTests, NotStringDowncastToString) {
     EXPECT_EQ(std::string(""), (std::string)Json::Json(true));
 }
 
+TEST(JsonTests, NotIntegerDowncastToInteger) {
+    EXPECT_EQ(0, (int)Json::Json(nullptr));
+    EXPECT_EQ(0, (int)Json::Json(false));
+    EXPECT_EQ(0, (int)Json::Json(true));
+    EXPECT_EQ(0, (int)Json::Json("42"));
+    EXPECT_EQ(42, (int)Json::Json(42.0));
+    EXPECT_EQ(42, (int)Json::Json(42.5));
+}
+
+TEST(JsonTests, BadNumbers) {
+    EXPECT_EQ(Json::Json(), Json::Json::FromString("-"));
+    EXPECT_EQ(Json::Json(), Json::Json::FromString("+"));
+    EXPECT_EQ(Json::Json(), Json::Json::FromString("+42"));
+    EXPECT_EQ(Json::Json(), Json::Json::FromString("0025"));
+    EXPECT_EQ(Json::Json(), Json::Json::FromString("-0025"));
+    EXPECT_EQ(Json::Json(), Json::Json::FromString("99999999999999999999999999999999999999999999999999999999"));
+    EXPECT_EQ(Json::Json(), Json::Json::FromString(".5"));
+}
+
+TEST(JsonTests, NotFloatingPointDowncastToFloatingPoint) {
+    EXPECT_EQ(0.0, (double)Json::Json(nullptr));
+    EXPECT_EQ(0.0, (double)Json::Json(false));
+    EXPECT_EQ(0.0, (double)Json::Json(true));
+    EXPECT_EQ(0.0, (int)Json::Json("42"));
+    EXPECT_EQ(42.0, (int)Json::Json(42));
+}
+
 TEST(JsonTests, FromCString) {
     Json::Json json("Hello, World!");
     ASSERT_EQ("\"Hello, World!\"", json.ToString());
@@ -93,4 +120,34 @@ TEST(JsonTests, BadlyEscapedCharacters) {
     EXPECT_EQ("This is bad: \\u123X", (std::string)json);
     json = Json::Json::FromString("\"This is bad: \\x\"");
     EXPECT_EQ("This is bad: \\x", (std::string)json);
+}
+
+TEST(JsonTests, FromInteger) {
+    Json::Json json(42);
+    ASSERT_EQ("42", json.ToString());
+}
+
+TEST(JsonTests, ToInteger) {
+    auto json = Json::Json::FromString("42");
+    ASSERT_TRUE(json == Json::Json(42));
+    json = Json::Json::FromString("-256");
+    ASSERT_TRUE(json == Json::Json(-256));
+}
+
+TEST(JsonTests, FromFloatingPoint) {
+    Json::Json json(3.14159);
+    ASSERT_EQ("3.14159", json.ToString());
+}
+
+TEST(JsonTests, ToFloatingPoint) {
+    auto json = Json::Json::FromString("3.14159");
+    ASSERT_TRUE(json == Json::Json(3.14159));
+    json = Json::Json::FromString("-17.03");
+    ASSERT_TRUE(json == Json::Json(-17.03));
+    json = Json::Json::FromString("5.3e-4");
+    ASSERT_TRUE(json == Json::Json(5.3e-4));
+    json = Json::Json::FromString("5.012e+12");
+    ASSERT_TRUE(json == Json::Json(5.012e+12));
+    json = Json::Json::FromString("32E+0");
+    ASSERT_TRUE(json == Json::Json(32E+0));
 }
