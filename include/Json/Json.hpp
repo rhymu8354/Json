@@ -42,6 +42,21 @@ namespace Json {
      * in RFC 7159 (https://tools.ietf.org/html/rfc7159).
      */
     class Json {
+        // Types
+    public:
+        /**
+         * These are the different kinds of values that a JSON object can be.
+         */
+        enum class Type {
+            Invalid,
+            Null,
+            Boolean,
+            String,
+            Integer,
+            FloatingPoint,
+            Array,
+        };
+
         // Lifecycle management
     public:
         ~Json();
@@ -170,6 +185,40 @@ namespace Json {
         operator double() const;
 
         /**
+         * This method returns the type of the JSON value.
+         *
+         * @return
+         *     The type of the JSON value is returned.
+         */
+        Type GetType() const;
+
+        /**
+         * This method returns the size of the JSON value,
+         * if it's an array.
+         *
+         * @return
+         *     The size of the JSON value is returned, if it's an array.
+         *
+         * @retval 0
+         *     This is returned if the JSON value isn't an array, or if it's
+         *     an empty array.
+         */
+        size_t GetSize() const;
+
+        /**
+         * This method returns the element at the given index of the
+         * JSON value, if it's an array.
+         *
+         * @return
+         *     The element at the given index of the JSON value is returned.
+         *
+         * @retval nullptr
+         *     This is returned if there is no element at the given index
+         *     of the JSON value, or if the JSON value isn't an array.
+         */
+        std::shared_ptr< Json > operator[](size_t index) const;
+
+        /**
          * This encodes the JSON object.
          *
          * @param[in] options
@@ -207,6 +256,22 @@ namespace Json {
 
     /**
      * This is a support function for Google Test to print out
+     * a Json::Type value.
+     *
+     * @param[in] type
+     *     This is the Json::Type value to print.
+     *
+     * @param[in] os
+     *     This points to the stream to which to print the
+     *     Json::Type value.
+     */
+    void PrintTo(
+        Json::Type type,
+        std::ostream* os
+    );
+
+    /**
+     * This is a support function for Google Test to print out
      * a Json value.
      *
      * @param[in] json
@@ -214,7 +279,7 @@ namespace Json {
      *
      * @param[in] os
      *     This points to the stream to which to print the
-     *     server request state value.
+     *     Json value.
      */
     void PrintTo(
         const Json& json,
