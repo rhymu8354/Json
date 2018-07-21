@@ -185,6 +185,7 @@ TEST(JsonTests, DecodeArrayNoWhitespace) {
     EXPECT_EQ("Hello", (std::string)*json[1]);
     EXPECT_EQ(Json::Json::Type::Boolean, json[2]->GetType());
     EXPECT_EQ(true, (bool)*json[2]);
+    EXPECT_TRUE(json[3] == nullptr);
 }
 
 TEST(JsonTests, DecodeArrayWithWhitespace) {
@@ -231,8 +232,47 @@ TEST(JsonTests, DecodeUnterminatedOuterArray) {
     ASSERT_EQ(Json::Json::Type::Invalid, json.GetType());
 }
 
+TEST(JsonTests, DecodeUnterminatedInnerArray) {
+    const std::string encoding("{ \"value\": 1, \"array\": [42, 57, \"flag\": true }");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(Json::Json::Type::Invalid, json.GetType());
+}
+
 TEST(JsonTests, DecodeUnterminatedInnerString) {
     const std::string encoding("[1,\"Hello,true]");
     const auto json = Json::Json::FromEncoding(encoding);
     ASSERT_EQ(Json::Json::Type::Invalid, json.GetType());
+}
+
+TEST(JsonTests, DecodeObject) {
+    const std::string encoding("{\"value\": 42, \"\": \"Pepe\", \"the handles\":[3,7], \"is,live\": true}");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(Json::Json::Type::Object, json.GetType());
+    ASSERT_EQ(4, json.GetSize());
+    EXPECT_TRUE(json.Has("value"));
+    EXPECT_TRUE(json.Has(""));
+    EXPECT_TRUE(json.Has("the handles"));
+    EXPECT_TRUE(json.Has("is,live"));
+    EXPECT_FALSE(json.Has("FeelsBadMan"));
+    const auto value = json["value"];
+    EXPECT_EQ(Json::Json::Type::Integer, value->GetType());
+    EXPECT_EQ(42, (int)*value);
+    const auto empty = json[""];
+    EXPECT_EQ(Json::Json::Type::String, empty->GetType());
+    EXPECT_EQ("Pepe", (std::string)*empty);
+    const auto theHandles = json["the handles"];
+    EXPECT_EQ(Json::Json::Type::Array, theHandles->GetType());
+    ASSERT_EQ(2, theHandles->GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, (*theHandles)[0]->GetType());
+    ASSERT_EQ(3, (int)*(*theHandles)[0]);
+    EXPECT_EQ(Json::Json::Type::Integer, (*theHandles)[1]->GetType());
+    ASSERT_EQ(7, (int)*(*theHandles)[1]);
+    const auto isLive = json["is,live"];
+    EXPECT_EQ(Json::Json::Type::Boolean, isLive->GetType());
+    EXPECT_EQ(true, (bool)*isLive);
+}
+
+TEST(JsonTests, NumericIndexNotArray) {
+    const Json::Json json(42);
+    ASSERT_TRUE(json[0] == nullptr);
 }
