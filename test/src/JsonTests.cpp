@@ -323,3 +323,10 @@ TEST(JsonTests, CompareObjects) {
     EXPECT_NE(json1, json4);
     EXPECT_NE(json5, json4);
 }
+
+TEST(JsonTests, AddObjectToItself) {
+    Json::Json json(Json::Json::Type::Array);
+    json.Add(42);
+    json.Add(std::move(json));
+    EXPECT_EQ("[42,[42]]", json.ToEncoding());
+}

@@ -61,9 +61,9 @@ namespace Json {
         // Lifecycle management
     public:
         ~Json();
-        Json(const Json&) = delete;
+        Json(const Json&);
         Json(Json&&);
-        Json& operator=(const Json&) = delete;
+        Json& operator=(const Json&);
         Json& operator=(Json&&);
 
         // Public methods
@@ -307,40 +307,41 @@ namespace Json {
         std::shared_ptr< Json > operator[](const char* key) const;
 
         /**
-         * This method moves the given value to be at the end of the
-         * array, if the JSON value is an array.
+         * This method makes a copy of the given value and places it at
+         * the end of the array, if the JSON value is an array.
          *
          * @param[in] value
-         *     This is the value to move to the end of the array.
+         *     This is the value to copy to the end of the array.
          */
-        void Add(Json&& value);
+        void Add(const Json& value);
 
         /**
-         * This method moves the given value to be at the given index of the
-         * array, if the JSON value is an array.  Any values previously at
-         * or after this index are moved forward one position.
+         * This method makes a copy of the given value and places it at
+         * the given index of the array, if the JSON value is an array.
+         * Any values previously at or after this index are moved forward
+         * one position.
          *
          * @param[in] value
-         *     This is the value to move into the array.
+         *     This is the value to copy into the array.
          *
          * @param[in] index
-         *     This is the position into which to move the given value.
+         *     This is the position into which to copy the given value.
          */
-        void Insert(Json&& value, size_t index);
+        void Insert(const Json& value, size_t index);
 
         /**
-         * This method moves the given value to be in the object under
-         * the given key, if the JSON value is an object.
+         * This method makes a copy of the given value and places it
+         * in the object under the given key, if the JSON value is an object.
          *
          * @param[in] key
          *     This is the name to assign the value when placed in the object.
          *
          * @param[in] value
-         *     This is the value to move into the object.
+         *     This is the value to copy into the object.
          */
         void Set(
             const std::string& key,
-            Json&& value
+            const Json& value
         );
 
         /**
