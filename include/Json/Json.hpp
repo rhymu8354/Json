@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <ostream>
+#include <stddef.h>
 #include <string>
 #include <Utf8/Utf8.hpp>
 
