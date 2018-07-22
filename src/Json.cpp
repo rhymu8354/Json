@@ -538,8 +538,12 @@ namespace Json {
                             (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
                             && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
+                            const auto oldMagnitude = (intmax_t)magnitude;
                             magnitude *= 10.0;
                             magnitude += (double)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
+                            if ((intmax_t)magnitude / 10 != oldMagnitude) {
+                                return;
+                            }
                         } else if (codePoints[index] == (Utf8::UnicodeCodePoint)'.') {
                             state = 4;
                         } else if (
@@ -611,8 +615,12 @@ namespace Json {
                             (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
                             && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
+                            const auto oldExponent = (intmax_t)exponent;
                             exponent *= 10.0;
                             exponent += (double)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
+                            if ((intmax_t)exponent / 10 != oldExponent) {
+                                return;
+                            }
                         } else {
                             return;
                         }
