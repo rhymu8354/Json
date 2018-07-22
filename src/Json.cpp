@@ -23,7 +23,12 @@ namespace {
      * These are the character that are considered "whitespace"
      * by the JSON standard (RFC 7159).
      */
-    constexpr const char* WHITESPACE_CHARACTERS = " \t\r\n";
+    std::set< Utf8::UnicodeCodePoint > WHITESPACE_CHARACTERS{
+        0x20, // ' '
+        0x09, // '\t'
+        0x0D, // '\r'
+        0x0A, // '\n'
+    };
 
     /**
      * This maps the escaped representations of special characters
@@ -55,6 +60,51 @@ namespace {
     };
 
     /**
+     * This method finds the offset of the first code point in the
+     * given vector of code points that is not in the given search set.
+     *
+     * @param[in] codePoints
+     *     This is the vector of code points to search.
+     *
+     * @param[in] searchSet
+     *     This is the set of code points to skip.
+     *
+     * @param[in] forwardDirection
+     *     This indicates whether or not to search forward from the front,
+     *     rather than backwards from the back.
+     *
+     * @return
+     *     The offset of the first code point that isn't in the given
+     *     search set is returned.
+     *
+     * @retval codePoints.size()
+     *     This is returned if all of the code points are in the search set.
+     */
+    size_t FindFirstNotOf(
+        const std::vector< Utf8::UnicodeCodePoint >& codePoints,
+        const std::set< Utf8::UnicodeCodePoint > searchSet,
+        bool forwardDirection
+    ) {
+        size_t offset = 0;
+        while (offset < codePoints.size()) {
+            const auto entry = searchSet.find(
+                forwardDirection
+                ? codePoints[offset]
+                : codePoints[codePoints.size() - offset - 1]
+            );
+            if (entry == searchSet.end()) {
+                break;
+            }
+            ++offset;
+        }
+        if (offset < codePoints.size()) {
+            return forwardDirection ? offset : codePoints.size() - offset - 1;
+        } else {
+            return offset;
+        }
+    }
+
+    /**
      * This function returns a string consisting of the four hex digits
      * matching the given code point in hexadecimal.
      *
@@ -78,7 +128,7 @@ namespace {
     }
 
     /**
-     * This function produces the escaped version of the given string.
+     * This function returns the JSON encoding of the given string.
      *
      * @param[in] s
      *     This is the string which needs to be escaped.
@@ -88,15 +138,15 @@ namespace {
      *     encoding a Json object into its string format.
      *
      * @return
-     *     The escaped string is returned.
+     *     The encoded string is returned.
      */
-    std::string Escape(
+    std::string EncodeString(
         const std::string& s,
         const Json::EncodingOptions& options
     ) {
-        Utf8::Utf8 decoder, encoder;
+        Utf8::Utf8 utf8;
         std::string output;
-        for (const auto cp: decoder.Decode(s)) {
+        for (const auto cp: utf8.Decode(s)) {
             if (
                 (cp == 0x22)
                 || (cp == 0x5C)
@@ -124,7 +174,7 @@ namespace {
                     output += CodePointToFourHexDigits(cp);
                 }
             } else {
-                const auto encoding = encoder.Encode({cp});
+                const auto encoding = utf8.Encode({cp});
                 output += std::string(
                     encoding.begin(),
                     encoding.end()
@@ -135,34 +185,34 @@ namespace {
     }
 
     /**
-     * This function produces the unescaped version of the given string.
+     * This function return the JSON decoding of the given string.
      *
      * @param[in] s
-     *     This is the string which needs to be unescaped.
+     *     This is the JSON-encoded string which needs to be decoded.
      *
      * @param[out] output
      *     This is where to put the unescaped string.
      *
      * @return
      *     An indication of whether or not the input string was a valid
-     *     encoding is returned.
+     *     JSON encoding is returned.
      */
-    bool Unescape(
+    bool DecodeString(
         const std::string& s,
         std::string& output
     ) {
-        Utf8::Utf8 decoder, encoder;
+        Utf8::Utf8 utf8;
         size_t state = 0;
         Utf8::UnicodeCodePoint cpFromHexDigits = 0;
         Utf8::UnicodeCodePoint firstHalfOfSurrogatePair = 0;
         std::vector< Utf8::UnicodeCodePoint > hexDigitsOriginal;
-        for (const auto cp: decoder.Decode(s)) {
+        for (const auto cp: utf8.Decode(s)) {
             switch (state) {
                 case 0: { // initial state
                     if (cp == 0x5C) { // '\\'
                         state = 1;
                     } else if (firstHalfOfSurrogatePair == 0) {
-                        const auto encoding = encoder.Encode({cp});
+                        const auto encoding = utf8.Encode({cp});
                         output += std::string(
                             encoding.begin(),
                             encoding.end()
@@ -183,7 +233,7 @@ namespace {
                         if (entry == SPECIAL_ESCAPE_DECODINGS.end()) {
                             return false;
                         }
-                        const auto encoding = encoder.Encode({entry->second});
+                        const auto encoding = utf8.Encode({entry->second});
                         output += std::string(
                             encoding.begin(),
                             encoding.end()
@@ -228,7 +278,7 @@ namespace {
                                 firstHalfOfSurrogatePair = cpFromHexDigits;
                             } else {
                                 const auto secondHalfOSurrogatePair = cpFromHexDigits;
-                                const auto encoding = encoder.Encode({
+                                const auto encoding = utf8.Encode({
                                     ((firstHalfOfSurrogatePair - 0xD800) << 10)
                                     + (secondHalfOSurrogatePair - 0xDC00)
                                     + 0x10000
@@ -240,7 +290,7 @@ namespace {
                                 firstHalfOfSurrogatePair = 0;
                             }
                         } else if (firstHalfOfSurrogatePair == 0) {
-                            const auto encoding = encoder.Encode({cpFromHexDigits});
+                            const auto encoding = utf8.Encode({cpFromHexDigits});
                             output += std::string(
                                 encoding.begin(),
                                 encoding.end()
@@ -374,20 +424,21 @@ namespace Json {
         }
 
         /**
-         * This function parses the given string as an integer JSON value.
+         * This function decodes the given code point sequence
+         * as an integer JSON value.
          *
-         * @param[in] s
-         *     This is the string to parse.
+         * @param[in] codePoints
+         *     This is the code point sequence to decode.
          */
-        void ParseAsInteger(const std::string& s) {
+        void DecodeAsInteger(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
             size_t index = 0;
             size_t state = 0;
             bool negative = false;
             int value = 0;
-            while (index < s.length()) {
+            while (index < codePoints.size()) {
                 switch (state) {
                     case 0: { // [ minus ]
-                        if (s[index] == '-') {
+                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'-') {
                             negative = true;
                             ++index;
                         }
@@ -395,14 +446,14 @@ namespace Json {
                     } break;
 
                     case 1: { // zero / 1-9
-                        if (s[index] == '0') {
+                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'0') {
                             state = 2;
                         } else if (
-                            (s[index] >= '1')
-                            && (s[index] <= '9')
+                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'1')
+                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
                             state = 3;
-                            value = (int)(s[index] - '0');
+                            value = (int)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
                         } else {
                             return;
                         }
@@ -415,12 +466,12 @@ namespace Json {
 
                     case 3: { // *DIGIT
                         if (
-                            (s[index] >= '0')
-                            && (s[index] <= '9')
+                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
+                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
                             const int previousValue = value;
                             value *= 10;
-                            value += (int)(s[index] - '0');
+                            value += (int)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
                             if (value / 10 != previousValue) {
                                 return;
                             }
@@ -438,13 +489,13 @@ namespace Json {
         }
 
         /**
-         * This function parses the given string as a floating-point
-         * JSON value.
+         * This function decodes the given code point sequence as
+         * a floating-point JSON value.
          *
-         * @param[in] s
-         *     This is the string to parse.
+         * @param[in] codePoints
+         *     This is the code point sequence to parse.
          */
-        void ParseAsFloatingPoint(const std::string& s) {
+        void DecodeAsFloatingPoint(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
             size_t index = 0;
             size_t state = 0;
             bool negativeMagnitude = false;
@@ -453,10 +504,10 @@ namespace Json {
             double fraction = 0.0;
             double exponent = 0.0;
             size_t fractionDigits = 0;
-            while (index < s.length()) {
+            while (index < codePoints.size()) {
                 switch (state) {
                     case 0: { // [ minus ]
-                        if (s[index] == '-') {
+                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'-') {
                             negativeMagnitude = true;
                             ++index;
                         }
@@ -464,14 +515,14 @@ namespace Json {
                     } break;
 
                     case 1: { // zero / 1-9
-                        if (s[index] == '0') {
+                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'0') {
                             state = 2;
                         } else if (
-                            (s[index] >= '1')
-                            && (s[index] <= '9')
+                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'1')
+                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
                             state = 3;
-                            magnitude = (double)(s[index] - '0');
+                            magnitude = (double)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
                         } else {
                             return;
                         }
@@ -484,16 +535,16 @@ namespace Json {
 
                     case 3: { // *DIGIT / . / e / E
                         if (
-                            (s[index] >= '0')
-                            && (s[index] <= '9')
+                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
+                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
                             magnitude *= 10.0;
-                            magnitude += (double)(s[index] - '0');
-                        } else if (s[index] == '.') {
+                            magnitude += (double)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
+                        } else if (codePoints[index] == (Utf8::UnicodeCodePoint)'.') {
                             state = 4;
                         } else if (
-                            (s[index] == 'e')
-                            || (s[index] == 'E')
+                            (codePoints[index] == (Utf8::UnicodeCodePoint)'e')
+                            || (codePoints[index] == (Utf8::UnicodeCodePoint)'E')
                         ) {
                             state = 6;
                         } else {
@@ -504,11 +555,16 @@ namespace Json {
 
                     case 4: { // frac: DIGIT
                         if (
-                            (s[index] >= '0')
-                            && (s[index] <= '9')
+                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
+                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
                             ++fractionDigits;
-                            fraction += (double)(s[index] - '0') / pow(10.0, (double)fractionDigits);
+                            fraction += (
+                                (double)(
+                                    codePoints[index] - (Utf8::UnicodeCodePoint)'0'
+                                )
+                                / pow(10.0, (double)fractionDigits)
+                            );
                         } else {
                             return;
                         }
@@ -518,14 +574,19 @@ namespace Json {
 
                     case 5: { // frac: *DIGIT / e / E
                         if (
-                            (s[index] >= '0')
-                            && (s[index] <= '9')
+                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
+                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
                             ++fractionDigits;
-                            fraction += (double)(s[index] - '0') / pow(10.0, (double)fractionDigits);
+                            fraction += (
+                                (double)(
+                                    codePoints[index] - (Utf8::UnicodeCodePoint)'0'
+                                )
+                                / pow(10.0, (double)fractionDigits)
+                            );
                         } else if (
-                            (s[index] == 'e')
-                            || (s[index] == 'E')
+                            (codePoints[index] == (Utf8::UnicodeCodePoint)'e')
+                            || (codePoints[index] == (Utf8::UnicodeCodePoint)'E')
                         ) {
                             state = 6;
                         } else {
@@ -535,10 +596,10 @@ namespace Json {
                     } break;
 
                     case 6: { // exp: [minus/plus] / DIGIT
-                        if (s[index] == '-') {
+                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'-') {
                             negativeExponent = true;
                             ++index;
-                        } else if (s[index] == '+') {
+                        } else if (codePoints[index] == (Utf8::UnicodeCodePoint)'+') {
                             ++index;
                         } else {
                         }
@@ -547,11 +608,11 @@ namespace Json {
 
                     case 7: { // exp: DIGIT
                         if (
-                            (s[index] >= '0')
-                            && (s[index] <= '9')
+                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
+                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
                             exponent *= 10.0;
-                            exponent += (double)(s[index] - '0');
+                            exponent += (double)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
                         } else {
                             return;
                         }
@@ -582,37 +643,40 @@ namespace Json {
          * where the end of the value encoding was found, or whether
          * the encoding was invalid.
          *
-         * @param[in] s
-         *     This is the string to parse.
+         * @param[in] codePoints
+         *     These are the Unicode code points to parse.
          *
          * @param[in,out] offset
          *     On input, this is the position of the first character
          *     of the encoded value in the string.
          *
          *     On ouput, this is the position of the first character
-         *     past the end of the encoded value in the string, or
-         *     std::string::npos if the encoded value was invalid.
+         *     past the end of the encoded value in the string
          *
          * @param[in] delimiter
          *     This is the character that marks the end of the value
          *     if it's encountered.
          *
          * @return
-         *     The encoding of the next JSON value in the given string
-         *     is returned.
+         *     The encoding of the next JSON value in the given
+         *     Unicode code points is returned.
+         *
+         * @return {}
+         *     This is returned if the encoded value was invalid.
          */
-        std::string ParseValue(
-            const std::string& s,
+        std::vector< Utf8::UnicodeCodePoint > ParseValue(
+            const std::vector< Utf8::UnicodeCodePoint >& codePoints,
             size_t& offset,
             char delimiter
         ) {
-            Utf8::Utf8 decoder, encoder;
             std::stack< char > expectedDelimiters;
             std::vector< Utf8::UnicodeCodePoint > encodedValueCodePoints;
-            const auto encodingCodePoints = decoder.Decode(s.substr(offset));
+            const std::vector< Utf8::UnicodeCodePoint > encodingCodePoints(
+                codePoints.begin() + offset,
+                codePoints.end()
+            );
             if (encodingCodePoints.empty()) {
-                offset = std::string::npos;
-                return "";
+                return {};
             }
             bool insideString = false;
             for (const auto cp: encodingCodePoints) {
@@ -640,34 +704,29 @@ namespace Json {
                 }
             }
             if (expectedDelimiters.empty()) {
-                auto encodedValue = encoder.Encode(encodedValueCodePoints);
-                offset += encodedValue.size();
-                if (encodedValue.back() == (Utf8::UnicodeCodePoint)delimiter) {
-                    encodedValue.pop_back();
+                offset += encodedValueCodePoints.size();
+                if (encodedValueCodePoints.back() == (Utf8::UnicodeCodePoint)delimiter) {
+                    encodedValueCodePoints.pop_back();
                 }
-                return std::string(
-                    encodedValue.begin(),
-                    encodedValue.end()
-                );
+                return encodedValueCodePoints;
             } else {
-                offset = std::string::npos;
-                return "";
+                return {};
             }
         }
 
         /**
-         * This function parses the given string as an array
+         * This function parses the given Unicode code points as an array
          * JSON value.
          *
-         * @param[in] s
-         *     This is the string to parse.
+         * @param[in] codePoints
+         *     These are the Unicode code points to parse.
          */
-        void ParseAsArray(const std::string& s) {
+        void ParseAsArray(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
             std::vector< std::shared_ptr< Json > > newArrayValue;
             size_t offset = 0;
-            while (offset < s.length()) {
-                const auto encodedValue = ParseValue(s, offset, ',');
-                if (offset == std::string::npos) {
+            while (offset < codePoints.size()) {
+                const auto encodedValue = ParseValue(codePoints, offset, ',');
+                if (encodedValue.empty()) {
                     return;
                 }
                 const auto value = std::make_shared< Json >(FromEncoding(encodedValue));
@@ -678,26 +737,26 @@ namespace Json {
         }
 
         /**
-         * This function parses the given string as an object
+         * This function parses the given Unicode code points as an object
          * JSON value.
          *
-         * @param[in] s
-         *     This is the string to parse.
+         * @param[in] codePoints
+         *     These are the Unicode code points to parse.
          */
-        void ParseAsObject(const std::string& s) {
+        void ParseAsObject(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
             std::map< std::string, std::shared_ptr< Json > > newObjectValue;
             size_t offset = 0;
-            while (offset < s.length()) {
-                const auto encodedKey = ParseValue(s, offset, ':');
-                if (offset == std::string::npos) {
+            while (offset < codePoints.size()) {
+                const auto encodedKey = ParseValue(codePoints, offset, ':');
+                if (encodedKey.empty()) {
                     return;
                 }
                 const auto key = std::make_shared< Json >(FromEncoding(encodedKey));
                 if (key->GetType() != Type::String) {
                     return;
                 }
-                const auto encodedValue = ParseValue(s, offset, ',');
-                if (offset == std::string::npos) {
+                const auto encodedValue = ParseValue(codePoints, offset, ',');
+                if (encodedValue.empty()) {
                     return;
                 }
                 const auto value = std::make_shared< Json >(FromEncoding(encodedValue));
@@ -1012,7 +1071,7 @@ namespace Json {
                 case Type::String: {
                     impl_->encoding = (
                         "\""
-                        + Escape(*impl_->stringValue, options)
+                        + EncodeString(*impl_->stringValue, options)
                         + "\""
                     );
                 } break;
@@ -1064,59 +1123,97 @@ namespace Json {
         return impl_->encoding;
     }
 
-    Json Json::FromEncoding(const std::string& encodingBeforeTrim) {
+    Json Json::FromEncoding(const std::vector< Utf8::UnicodeCodePoint >& encodingBeforeTrim) {
         Json json;
-        const auto firstNonWhitespaceCharacter = encodingBeforeTrim.find_first_not_of(WHITESPACE_CHARACTERS);
-        if (firstNonWhitespaceCharacter == std::string::npos) {
+        const auto firstNonWhitespaceCharacter = FindFirstNotOf(
+            encodingBeforeTrim,
+            WHITESPACE_CHARACTERS,
+            true
+        );
+        if (firstNonWhitespaceCharacter == encodingBeforeTrim.size()) {
             return json;
         }
-        const auto firstLastNonWhitespaceCharacter = encodingBeforeTrim.find_last_not_of(WHITESPACE_CHARACTERS);
-        const auto encoding = encodingBeforeTrim.substr(
-            firstNonWhitespaceCharacter,
-            firstLastNonWhitespaceCharacter - firstNonWhitespaceCharacter + 1
+        const auto lastNonWhitespaceCharacter = FindFirstNotOf(
+            encodingBeforeTrim,
+            WHITESPACE_CHARACTERS,
+            false
         );
-        json.impl_->encoding = encoding;
+        const std::vector< Utf8::UnicodeCodePoint > encoding(
+            encodingBeforeTrim.begin() + firstNonWhitespaceCharacter,
+            encodingBeforeTrim.begin() + lastNonWhitespaceCharacter + 1
+        );
+        Utf8::Utf8 utf8;
+        const auto encodingUtf8 = utf8.Encode(encoding);
+        json.impl_->encoding = std::string(
+            encodingUtf8.begin(),
+            encodingUtf8.end()
+        );
         if (encoding.empty()) {
         } else if (
             (encoding[0] == '{')
-            && (encoding[encoding.length() - 1] == '}')
+            && (encoding[encoding.size() - 1] == '}')
         ) {
-            json.impl_->ParseAsObject(encoding.substr(1, encoding.length() - 2));
+            json.impl_->ParseAsObject(
+                std::vector< Utf8::UnicodeCodePoint >(
+                    encoding.begin() + 1,
+                    encoding.begin() + encoding.size() - 1
+                )
+            );
         } else if (
             (encoding[0] == '[')
-            && (encoding[encoding.length() - 1] == ']')
+            && (encoding[encoding.size() - 1] == ']')
         ) {
-            json.impl_->ParseAsArray(encoding.substr(1, encoding.length() - 2));
+            json.impl_->ParseAsArray(
+                std::vector< Utf8::UnicodeCodePoint >(
+                    encoding.begin() + 1,
+                    encoding.begin() + encoding.size() - 1
+                )
+            );
         } else if (
             (encoding[0] == '"')
-            && (encoding[encoding.length() - 1] == '"')
+            && (encoding[encoding.size() - 1] == '"')
         ) {
             std::string output;
+            Utf8::Utf8 utf8;
+            const auto utf8EncodedString = utf8.Encode(
+                std::vector< Utf8::UnicodeCodePoint >(
+                    encoding.begin() + 1,
+                    encoding.begin() + encoding.size() - 1
+                )
+            );
             if (
-                Unescape(
-                    encoding.substr(1, encoding.length() - 2),
+                DecodeString(
+                    std::string(
+                        utf8EncodedString.begin(),
+                        utf8EncodedString.end()
+                    ),
                     output
                 )
             ) {
                 json.impl_->type = Type::String;
                 json.impl_->stringValue = new std::string(output);
             }
-        } else if (encoding == "null") {
+        } else if (json.impl_->encoding == "null") {
             json.impl_->type = Type::Null;
-        } else if (encoding == "true") {
+        } else if (json.impl_->encoding == "true") {
             json.impl_->type = Type::Boolean;
             json.impl_->booleanValue = true;
-        } else if (encoding == "false") {
+        } else if (json.impl_->encoding == "false") {
             json.impl_->type = Type::Boolean;
             json.impl_->booleanValue = false;
         } else {
-            if (encoding.find_first_of("+.eE") != std::string::npos) {
-                json.impl_->ParseAsFloatingPoint(encoding);
+            if (json.impl_->encoding.find_first_of("+.eE") != std::string::npos) {
+                json.impl_->DecodeAsFloatingPoint(encoding);
             } else {
-                json.impl_->ParseAsInteger(encoding);
+                json.impl_->DecodeAsInteger(encoding);
             }
         }
         return json;
+    }
+
+    Json Json::FromEncoding(const std::string& encodingBeforeTrim) {
+        Utf8::Utf8 decoder;
+        return FromEncoding(decoder.Decode(encodingBeforeTrim));
     }
 
     void PrintTo(

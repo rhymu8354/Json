@@ -12,6 +12,7 @@
 #include <memory>
 #include <ostream>
 #include <string>
+#include <Utf8/Utf8.hpp>
 
 namespace Json {
 
@@ -373,6 +374,16 @@ namespace Json {
          *     The encoding of the JSON object is returned.
          */
         std::string ToEncoding(const EncodingOptions& options = EncodingOptions()) const;
+
+        /**
+         * This method returns a new JSON object constructed by parsing
+         * the JSON object from the given encoding.
+         *
+         * @param[in] encodingBeforeTrim
+         *     This is the encoding of the JSON object to construct.
+         *     It may have whitespace characters in the margins.
+         */
+        static Json FromEncoding(const std::vector< Utf8::UnicodeCodePoint >& encodingBeforeTrim);
 
         /**
          * This method returns a new JSON object constructed by parsing
