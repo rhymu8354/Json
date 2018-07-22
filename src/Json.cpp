@@ -929,6 +929,21 @@ namespace Json {
         impl_->stringValue = new std::string(value);
     }
 
+    Json::Json(std::initializer_list< const Json > args)
+        : impl_(new Impl)
+    {
+        impl_->type = Type::Array;
+        impl_->arrayValue = new std::vector< std::shared_ptr< Json > >(args.size());
+        size_t index = 0;
+        for (
+            auto arg = args.begin();
+            arg != args.end();
+            ++arg, ++index
+        ) {
+            (*impl_->arrayValue)[index] = std::make_shared< Json >(*arg);
+        }
+    }
+
     bool Json::operator==(const Json& other) const {
         if (impl_->type != other.impl_->type) {
             return false;

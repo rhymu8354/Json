@@ -112,52 +112,61 @@ namespace Json {
         Json(Type type = Type::Invalid);
 
         /**
-         * This constructs a JSON object consisting of the "null" literal.
+         * This constructs a JSON value consisting of the "null" literal.
          *
          * @param[in] null
-         *     This is the object to wrap in JSON.
+         *     This is the value to wrap in JSON.
          */
         Json(nullptr_t);
 
         /**
-         * This constructs a JSON object consisting of a boolean value.
+         * This constructs a JSON value consisting of a boolean value.
          *
          * @param[in] value
-         *     This is the object to wrap in JSON.
+         *     This is the value to wrap in JSON.
          */
         Json(bool value);
 
         /**
-         * This constructs a JSON object consisting of an integer value.
+         * This constructs a JSON value consisting of an integer value.
          *
          * @param[in] value
-         *     This is the object to wrap in JSON.
+         *     This is the value to wrap in JSON.
          */
         Json(int value);
 
         /**
-         * This constructs a JSON object consisting of a floating point value.
+         * This constructs a JSON value consisting of a floating point value.
          *
          * @param[in] value
-         *     This is the object to wrap in JSON.
+         *     This is the value to wrap in JSON.
          */
         Json(double value);
 
         /**
-         * This constructs a JSON object consisting of a C string value.
+         * This constructs a JSON value consisting of a C string value.
          *
          * @param[in] value
-         *     This is the object to wrap in JSON.
+         *     This is the value to wrap in JSON.
          */
         Json(const char* value);
 
         /**
-         * This constructs a JSON object consisting of a C++ string value.
+         * This constructs a JSON value consisting of a C++ string value.
          *
          * @param[in] value
-         *     This is the object to wrap in JSON.
+         *     This is the value to wrap in JSON.
          */
         Json(const std::string& value);
+
+        /**
+         * This constructs a JSON array containing copies of the
+         * elements in the given initializer list.
+         *
+         * @param[in] args
+         *     These are the values to copy into the new array.
+         */
+        Json(std::initializer_list< const Json > args);
 
         /**
          * This is the equality comparison operator.
