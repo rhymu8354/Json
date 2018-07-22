@@ -346,3 +346,49 @@ TEST(JsonTests, ReassignValue) {
     EXPECT_EQ("[42,\"Hello\",false]", json1.ToEncoding());
     EXPECT_EQ("[\"Hello\",true]", json2.ToEncoding());
 }
+
+TEST(JsonTests, PrettyPrintingObject) {
+    const std::string encoding("{\"value\": 42, \"\": \"Pepe\", \"the handles\":[3,7], \"is,live\": true}");
+    const auto json = Json::Json::FromEncoding(encoding);
+    Json::EncodingOptions options;
+    options.reencode = true;
+    options.pretty = true;
+    options.spacesPerIndentationLevel = 4;
+    options.wrapThreshold = 30;
+    ASSERT_EQ(
+        (
+            "{\r\n"
+            "    \"\": \"Pepe\",\r\n"
+            "    \"is,live\": true,\r\n"
+            "    \"the handles\": [3, 7],\r\n"
+            "    \"value\": 42\r\n"
+            "}"
+        ),
+        json.ToEncoding(options)
+    );
+}
+
+TEST(JsonTests, PrettyPrintingArray) {
+    const std::string encoding("[1,[2,3],4,[5,6,7]]");
+    const auto json = Json::Json::FromEncoding(encoding);
+    Json::EncodingOptions options;
+    options.reencode = true;
+    options.pretty = true;
+    options.spacesPerIndentationLevel = 4;
+    options.wrapThreshold = 10;
+    ASSERT_EQ(
+        (
+            "[\r\n"
+            "    1,\r\n"
+            "    [2, 3],\r\n"
+            "    4,\r\n"
+            "    [\r\n"
+            "        5,\r\n"
+            "        6,\r\n"
+            "        7\r\n"
+            "    ]\r\n"
+            "]"
+        ),
+        json.ToEncoding(options)
+    );
+}

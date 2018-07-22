@@ -1130,32 +1130,94 @@ namespace Json {
                 case Type::Array: {
                     impl_->encoding = '[';
                     bool isFirst = true;
+                    auto nestedOptions = options;
+                    ++nestedOptions.numIndentationLevels;
+                    std::string nestedIndentation(
+                        (
+                            nestedOptions.numIndentationLevels
+                            * nestedOptions.spacesPerIndentationLevel
+                        ),
+                        ' '
+                    );
+                    std::string wrappedEncoding = "[\r\n";
                     for (const auto value: *impl_->arrayValue) {
                         if (isFirst) {
                             isFirst = false;
                         } else {
-                            impl_->encoding += ',';
+                            impl_->encoding += (nestedOptions.pretty ? ", " : ",");
+                            wrappedEncoding += ",\r\n";
                         }
-                        impl_->encoding += value->ToEncoding(options);
+                        const auto encodedValue = value->ToEncoding(nestedOptions);
+                        impl_->encoding += encodedValue;
+                        wrappedEncoding += nestedIndentation;
+                        wrappedEncoding += encodedValue;
                     }
                     impl_->encoding += ']';
+                    std::string indentation(
+                        (
+                            options.numIndentationLevels
+                            * options.spacesPerIndentationLevel
+                        ),
+                        ' '
+                    );
+                    wrappedEncoding += "\r\n";
+                    wrappedEncoding += indentation;
+                    wrappedEncoding += "]";
+                    if (
+                        options.pretty
+                        && (indentation.length() + impl_->encoding.length() > options.wrapThreshold)
+                    ) {
+                        impl_->encoding = wrappedEncoding;
+                    }
                 } break;
 
                 case Type::Object: {
                     impl_->encoding = '{';
                     bool isFirst = true;
+                    auto nestedOptions = options;
+                    ++nestedOptions.numIndentationLevels;
+                    std::string nestedIndentation(
+                        (
+                            nestedOptions.numIndentationLevels
+                            * nestedOptions.spacesPerIndentationLevel
+                        ),
+                        ' '
+                    );
+                    std::string wrappedEncoding = "{\r\n";
                     for (const auto& entry: *impl_->objectValue) {
                         if (isFirst) {
                             isFirst = false;
                         } else {
-                            impl_->encoding += ',';
+                            impl_->encoding += (nestedOptions.pretty ? ", " : ",");
+                            wrappedEncoding += ",\r\n";
                         }
                         const Json keyAsJson(entry.first);
-                        impl_->encoding += keyAsJson.ToEncoding(options);
-                        impl_->encoding += ':';
-                        impl_->encoding += entry.second->ToEncoding(options);
+                        const auto encodedValue = (
+                            keyAsJson.ToEncoding(nestedOptions)
+                            + (nestedOptions.pretty ? ": " : ":")
+                            + entry.second->ToEncoding(nestedOptions)
+                        );
+                        impl_->encoding += encodedValue;
+                        wrappedEncoding += nestedIndentation;
+                        wrappedEncoding += encodedValue;
                     }
                     impl_->encoding += '}';
+                    std::string indentation(
+                        (
+                            options.numIndentationLevels
+                            * options.spacesPerIndentationLevel
+                        ),
+                        ' '
+                    );
+                    wrappedEncoding += "\r\n";
+                    wrappedEncoding += indentation;
+                    wrappedEncoding += "}";
+                    if (
+                        options.pretty
+                        && (indentation.length() + impl_->encoding.length() > options.wrapThreshold)
+                    ) {
+                        impl_->encoding = wrappedEncoding;
+                    }
                 } break;
 
                 default: {
