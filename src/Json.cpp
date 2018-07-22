@@ -311,6 +311,82 @@ namespace {
         );
     }
 
+    /**
+     * This function performs a deep comparison of two arrays
+     * of JSON values.
+     *
+     * @param[in] lhs
+     *     This is the first array of JSON values to compare.
+     *
+     * @param[in] rhs
+     *     This is the second array of JSON values to compare.
+     *
+     * @return
+     *     An indication of whether or not the two given
+     *     arrays of JSON values are considered equalivalent
+     *     is returned.
+     */
+    bool CompareJsonArrays(
+        const std::vector< std::shared_ptr< Json::Json > >&lhs,
+        const std::vector< std::shared_ptr< Json::Json > >&rhs
+    ) {
+        if (lhs.size() != rhs.size()) {
+            return false;
+        }
+        for (size_t i = 0; i < lhs.size(); ++i) {
+            if (*lhs[i] != *rhs[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * This function performs a deep comparison of two arrays
+     * of JSON values.
+     *
+     * @param[in] lhs
+     *     This is the first array of JSON values to compare.
+     *
+     * @param[in] rhs
+     *     This is the second array of JSON values to compare.
+     *
+     * @return
+     *     An indication of whether or not the two given
+     *     arrays of JSON values are considered equalivalent
+     *     is returned.
+     */
+    bool CompareJsonObjects(
+        const std::map< std::string, std::shared_ptr< Json::Json > >&lhs,
+        const std::map< std::string, std::shared_ptr< Json::Json > >&rhs
+    ) {
+        std::set< std::string > keys;
+        for (const auto& entry: lhs) {
+            (void)keys.insert(entry.first);
+        }
+        for (const auto& entry: rhs) {
+            const auto otherEntry = keys.find(entry.first);
+            if (otherEntry == keys.end()) {
+                return false;
+            }
+            (void)keys.erase(entry.first);
+        }
+        if (!keys.empty()) {
+            return false;
+        }
+        for (
+            auto it = lhs.begin();
+            it != lhs.end();
+            ++it
+        ) {
+            const auto otherEntry = rhs.find(it->first);
+            if (*it->second != *otherEntry->second) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 }
 
 namespace Json {
@@ -858,54 +934,13 @@ namespace Json {
             return false;
         } else switch (impl_->type) {
             case Type::Invalid: return true;
-
             case Type::Null: return true;
-
             case Type::Boolean: return impl_->booleanValue == other.impl_->booleanValue;
-
             case Type::String: return *impl_->stringValue == *other.impl_->stringValue;
-
             case Type::Integer: return impl_->integerValue == other.impl_->integerValue;
-
             case Type::FloatingPoint: return impl_->floatingPointValue == other.impl_->floatingPointValue;
-
-            case Type::Array: {
-                if (impl_->arrayValue->size() != other.impl_->arrayValue->size()) {
-                    return false;
-                }
-                for (size_t i = 0; i < impl_->arrayValue->size(); ++i) {
-                    if (*(*impl_->arrayValue)[i] != *(*other.impl_->arrayValue)[i]) {
-                        return false;
-                    }
-                }
-            } return true;
-
-            case Type::Object: {
-                std::set< std::string > keys;
-                for (const auto& entry: *impl_->objectValue) {
-                    (void)keys.insert(entry.first);
-                }
-                for (const auto& entry: *other.impl_->objectValue) {
-                    const auto otherEntry = keys.find(entry.first);
-                    if (otherEntry == keys.end()) {
-                        return false;
-                    }
-                    (void)keys.erase(entry.first);
-                }
-                if (!keys.empty()) {
-                    return false;
-                }
-                for (
-                    auto it = impl_->objectValue->begin();
-                    it != impl_->objectValue->end();
-                    ++it
-                ) {
-                    if (*it->second != *(*other.impl_->objectValue)[it->first]) {
-                        return false;
-                    }
-                }
-            } return true;
-
+            case Type::Array: return CompareJsonArrays(*impl_->arrayValue, *other.impl_->arrayValue);
+            case Type::Object: return CompareJsonObjects(*impl_->objectValue, *other.impl_->objectValue);
             default: return true;
         }
     }
