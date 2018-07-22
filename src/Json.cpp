@@ -546,10 +546,6 @@ namespace Json {
                     } break;
 
                     case 7: { // exp: DIGIT
-                        state = 8;
-                    } break;
-
-                    case 8: { // exp: *DIGIT
                         if (
                             (s[index] >= '0')
                             && (s[index] <= '9')
@@ -567,7 +563,6 @@ namespace Json {
                 (state >= 2)
                 && (state != 4)
                 && (state != 6)
-                && (state != 7)
             ) {
                 type = Type::FloatingPoint;
                 floatingPointValue = (
