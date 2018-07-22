@@ -399,3 +399,13 @@ TEST(JsonTests, JsonArrayInitializerList) {
     };
     ASSERT_EQ("[42,\"Hello, World!\",true]", json.ToEncoding());
 }
+
+TEST(JsonTests, JsonDecodeObjectWithDuplicateKeys) {
+    const auto json = Json::Json::FromEncoding("{\"key\": 3, \"key\": true}");
+    ASSERT_EQ(Json::Json::Type::Object, json.GetType());
+    ASSERT_EQ(1, json.GetSize());
+    ASSERT_EQ(Json::Json::Type::Boolean, json["key"]->GetType());
+    Json::EncodingOptions options;
+    options.reencode = true;
+    ASSERT_EQ("{\"key\":true}", json.ToEncoding(options));
+}
