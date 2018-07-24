@@ -409,3 +409,21 @@ TEST(JsonTests, JsonDecodeObjectWithDuplicateKeys) {
     options.reencode = true;
     ASSERT_EQ("{\"key\":true}", json.ToEncoding(options));
 }
+
+TEST(JsonTests, DecodeObjectsWithinObjects) {
+    const std::string encoding("{\"nested\":{\"value\":42, \"good\": true}, \"end\": null}");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(Json::Json::Type::Object, json.GetType());
+    ASSERT_EQ(2, json.GetSize());
+    ASSERT_TRUE(json.Has("nested"));
+    ASSERT_EQ(Json::Json::Type::Object, json["nested"]->GetType());
+    ASSERT_EQ(2, json["nested"]->GetSize());
+    ASSERT_TRUE(json["nested"]->Has("value"));
+    ASSERT_EQ(Json::Json::Type::Integer, (*json["nested"])["value"]->GetType());
+    ASSERT_EQ(42, (int)*(*json["nested"])["value"]);
+    ASSERT_TRUE(json["nested"]->Has("good"));
+    ASSERT_EQ(Json::Json::Type::Boolean, (*json["nested"])["good"]->GetType());
+    ASSERT_EQ(true, (bool)*(*json["nested"])["good"]);
+    ASSERT_TRUE(json.Has("end"));
+    EXPECT_EQ(Json::Json::Type::Null, json["end"]->GetType());
+}

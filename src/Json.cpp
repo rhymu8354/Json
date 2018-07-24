@@ -779,6 +779,8 @@ namespace Json {
                         expectedDelimiters.push('\"');
                     } else if (cp == (Utf8::UnicodeCodePoint)'[') {
                         expectedDelimiters.push(']');
+                    } else if (cp == (Utf8::UnicodeCodePoint)'{') {
+                        expectedDelimiters.push('}');
                     } else if (
                         (cp == (Utf8::UnicodeCodePoint)delimiter)
                         && expectedDelimiters.empty()
