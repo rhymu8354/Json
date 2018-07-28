@@ -427,3 +427,17 @@ TEST(JsonTests, DecodeObjectsWithinObjects) {
     ASSERT_TRUE(json.Has("end"));
     EXPECT_EQ(Json::Json::Type::Null, json["end"].GetType());
 }
+
+TEST(JsonTests, GetKeys) {
+    const std::string encoding("{\"value\": 42, \"\": \"Pepe\", \"the handles\":[3,7], \"is,live\": true}");
+    const auto json = Json::Json::FromEncoding(encoding);
+    ASSERT_EQ(
+        (std::vector< std::string >{
+            "",
+            "is,live",
+            "the handles",
+            "value",
+        }),
+        json.GetKeys()
+    );
+}

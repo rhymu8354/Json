@@ -1026,6 +1026,17 @@ namespace Json {
         }
     }
 
+    std::vector< std::string > Json::GetKeys() const {
+        std::vector< std::string > keys;
+        if (impl_->type == Type::Object) {
+            keys.reserve(impl_->objectValue->size());
+            for (const auto& entry: *impl_->objectValue) {
+                keys.push_back(entry.first);
+            }
+        }
+        return keys;
+    }
+
     const Json& Json::operator[](size_t index) const {
         if (impl_->type == Type::Array) {
             if (index >= impl_->arrayValue->size()) {
