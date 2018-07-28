@@ -292,11 +292,11 @@ namespace Json {
          * @return
          *     The element at the given index of the JSON value is returned.
          *
-         * @retval nullptr
-         *     This is returned if there is no element at the given index
-         *     of the JSON value, or if the JSON value isn't an array.
+         *     If there is no element with the given name
+         *     in the JSON value, or if the JSON value isn't an object,
+         *     a "null" JSON value is returned.
          */
-        std::shared_ptr< Json > operator[](size_t index) const;
+        Json operator[](size_t index) const;
 
         /**
          * This method returns the element at the given index of the
@@ -309,11 +309,11 @@ namespace Json {
          * @return
          *     The element at the given index of the JSON value is returned.
          *
-         * @retval nullptr
-         *     This is returned if there is no element at the given index
-         *     of the JSON value, or if the JSON value isn't an array.
+         *     If there is no element with the given name
+         *     in the JSON value, or if the JSON value isn't an object,
+         *     a "null" JSON value is returned.
          */
-        std::shared_ptr< Json > operator[](int index) const;
+        Json operator[](int index) const;
 
         /**
          * This method returns the element with the given name in the
@@ -325,11 +325,11 @@ namespace Json {
          * @return
          *     The element with the given name in the JSON value is returned.
          *
-         * @retval nullptr
-         *     This is returned if there is no element with the given name
-         *     in the JSON value, or if the JSON value isn't an object.
+         *     If there is no element with the given name
+         *     in the JSON value, or if the JSON value isn't an object,
+         *     a "null" JSON value is returned.
          */
-        std::shared_ptr< Json > operator[](const std::string& key) const;
+        Json operator[](const std::string& key) const;
 
         /**
          * This method returns the element with the given name in the
@@ -341,11 +341,11 @@ namespace Json {
          * @return
          *     The element with the given name in the JSON value is returned.
          *
-         * @retval nullptr
-         *     This is returned if there is no element with the given name
-         *     in the JSON value, or if the JSON value isn't an object.
+         *     If there is no element with the given name
+         *     in the JSON value, or if the JSON value isn't an object,
+         *     a "null" JSON value is returned.
          */
-        std::shared_ptr< Json > operator[](const char* key) const;
+        Json operator[](const char* key) const;
 
         /**
          * This method makes a copy of the given value and places it at

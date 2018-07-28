@@ -182,12 +182,12 @@ TEST(JsonTests, DecodeArrayNoWhitespace) {
     const auto json = Json::Json::FromEncoding(encoding);
     ASSERT_EQ(Json::Json::Type::Array, json.GetType());
     ASSERT_EQ(3, json.GetSize());
-    EXPECT_EQ(Json::Json::Type::Integer, json[0]->GetType());
-    EXPECT_EQ(1, (int)*json[0]);
-    EXPECT_EQ(Json::Json::Type::String, json[1]->GetType());
-    EXPECT_EQ("Hello", (std::string)*json[1]);
-    EXPECT_EQ(Json::Json::Type::Boolean, json[2]->GetType());
-    EXPECT_EQ(true, (bool)*json[2]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[0].GetType());
+    EXPECT_EQ(1, (int)json[0]);
+    EXPECT_EQ(Json::Json::Type::String, json[1].GetType());
+    EXPECT_EQ("Hello", (std::string)json[1]);
+    EXPECT_EQ(Json::Json::Type::Boolean, json[2].GetType());
+    EXPECT_EQ(true, (bool)json[2]);
     EXPECT_TRUE(json[3] == nullptr);
 }
 
@@ -196,12 +196,12 @@ TEST(JsonTests, DecodeArrayWithWhitespace) {
     const auto json = Json::Json::FromEncoding(encoding);
     ASSERT_EQ(Json::Json::Type::Array, json.GetType());
     ASSERT_EQ(3, json.GetSize());
-    EXPECT_EQ(Json::Json::Type::Integer, json[0]->GetType());
-    EXPECT_EQ(1, (int)*json[0]);
-    EXPECT_EQ(Json::Json::Type::String, json[1]->GetType());
-    EXPECT_EQ("Hello", (std::string)*json[1]);
-    EXPECT_EQ(Json::Json::Type::Boolean, json[2]->GetType());
-    EXPECT_EQ(true, (bool)*json[2]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[0].GetType());
+    EXPECT_EQ(1, (int)json[0]);
+    EXPECT_EQ(Json::Json::Type::String, json[1].GetType());
+    EXPECT_EQ("Hello", (std::string)json[1]);
+    EXPECT_EQ(Json::Json::Type::Boolean, json[2].GetType());
+    EXPECT_EQ(true, (bool)json[2]);
 }
 
 TEST(JsonTests, DecodeArraysWithinArrays) {
@@ -209,24 +209,24 @@ TEST(JsonTests, DecodeArraysWithinArrays) {
     const auto json = Json::Json::FromEncoding(encoding);
     ASSERT_EQ(Json::Json::Type::Array, json.GetType());
     ASSERT_EQ(4, json.GetSize());
-    EXPECT_EQ(Json::Json::Type::Integer, json[0]->GetType());
-    EXPECT_EQ(1, (int)*json[0]);
-    EXPECT_EQ(Json::Json::Type::Array, json[1]->GetType());
-    ASSERT_EQ(2, json[1]->GetSize());
-    EXPECT_EQ(Json::Json::Type::Integer, (*json[1])[0]->GetType());
-    EXPECT_EQ(2, (int)*(*json[1])[0]);
-    EXPECT_EQ(Json::Json::Type::Integer, (*json[1])[1]->GetType());
-    EXPECT_EQ(3, (int)*(*json[1])[1]);
-    EXPECT_EQ(Json::Json::Type::Integer, json[2]->GetType());
-    EXPECT_EQ(4, (int)*json[2]);
-    EXPECT_EQ(Json::Json::Type::Array, json[3]->GetType());
-    ASSERT_EQ(3, json[3]->GetSize());
-    EXPECT_EQ(Json::Json::Type::Integer, (*json[3])[0]->GetType());
-    EXPECT_EQ(5, (int)*(*json[3])[0]);
-    EXPECT_EQ(Json::Json::Type::Integer, (*json[3])[1]->GetType());
-    EXPECT_EQ(6, (int)*(*json[3])[1]);
-    EXPECT_EQ(Json::Json::Type::Integer, (*json[3])[2]->GetType());
-    EXPECT_EQ(7, (int)*(*json[3])[2]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[0].GetType());
+    EXPECT_EQ(1, (int)json[0]);
+    EXPECT_EQ(Json::Json::Type::Array, json[1].GetType());
+    ASSERT_EQ(2, json[1].GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, json[1][0].GetType());
+    EXPECT_EQ(2, (int)json[1][0]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[1][1].GetType());
+    EXPECT_EQ(3, (int)json[1][1]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[2].GetType());
+    EXPECT_EQ(4, (int)json[2]);
+    EXPECT_EQ(Json::Json::Type::Array, json[3].GetType());
+    ASSERT_EQ(3, json[3].GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, json[3][0].GetType());
+    EXPECT_EQ(5, (int)json[3][0]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[3][1].GetType());
+    EXPECT_EQ(6, (int)json[3][1]);
+    EXPECT_EQ(Json::Json::Type::Integer, json[3][2].GetType());
+    EXPECT_EQ(7, (int)json[3][2]);
 }
 
 TEST(JsonTests, DecodeUnterminatedOuterArray) {
@@ -258,21 +258,21 @@ TEST(JsonTests, DecodeObject) {
     EXPECT_TRUE(json.Has("is,live"));
     EXPECT_FALSE(json.Has("FeelsBadMan"));
     const auto value = json["value"];
-    EXPECT_EQ(Json::Json::Type::Integer, value->GetType());
-    EXPECT_EQ(42, (int)*value);
+    EXPECT_EQ(Json::Json::Type::Integer, value.GetType());
+    EXPECT_EQ(42, (int)value);
     const auto empty = json[""];
-    EXPECT_EQ(Json::Json::Type::String, empty->GetType());
-    EXPECT_EQ("Pepe", (std::string)*empty);
+    EXPECT_EQ(Json::Json::Type::String, empty.GetType());
+    EXPECT_EQ("Pepe", (std::string)empty);
     const auto theHandles = json["the handles"];
-    EXPECT_EQ(Json::Json::Type::Array, theHandles->GetType());
-    ASSERT_EQ(2, theHandles->GetSize());
-    EXPECT_EQ(Json::Json::Type::Integer, (*theHandles)[0]->GetType());
-    ASSERT_EQ(3, (int)*(*theHandles)[0]);
-    EXPECT_EQ(Json::Json::Type::Integer, (*theHandles)[1]->GetType());
-    ASSERT_EQ(7, (int)*(*theHandles)[1]);
+    EXPECT_EQ(Json::Json::Type::Array, theHandles.GetType());
+    ASSERT_EQ(2, theHandles.GetSize());
+    EXPECT_EQ(Json::Json::Type::Integer, theHandles[0].GetType());
+    ASSERT_EQ(3, (int)theHandles[0]);
+    EXPECT_EQ(Json::Json::Type::Integer, theHandles[1].GetType());
+    ASSERT_EQ(7, (int)theHandles[1]);
     const auto isLive = json["is,live"];
-    EXPECT_EQ(Json::Json::Type::Boolean, isLive->GetType());
-    EXPECT_EQ(true, (bool)*isLive);
+    EXPECT_EQ(Json::Json::Type::Boolean, isLive.GetType());
+    EXPECT_EQ(true, (bool)isLive);
 }
 
 TEST(JsonTests, NumericIndexNotArray) {
@@ -404,7 +404,7 @@ TEST(JsonTests, JsonDecodeObjectWithDuplicateKeys) {
     const auto json = Json::Json::FromEncoding("{\"key\": 3, \"key\": true}");
     ASSERT_EQ(Json::Json::Type::Object, json.GetType());
     ASSERT_EQ(1, json.GetSize());
-    ASSERT_EQ(Json::Json::Type::Boolean, json["key"]->GetType());
+    ASSERT_EQ(Json::Json::Type::Boolean, json["key"].GetType());
     Json::EncodingOptions options;
     options.reencode = true;
     ASSERT_EQ("{\"key\":true}", json.ToEncoding(options));
@@ -416,14 +416,14 @@ TEST(JsonTests, DecodeObjectsWithinObjects) {
     ASSERT_EQ(Json::Json::Type::Object, json.GetType());
     ASSERT_EQ(2, json.GetSize());
     ASSERT_TRUE(json.Has("nested"));
-    ASSERT_EQ(Json::Json::Type::Object, json["nested"]->GetType());
-    ASSERT_EQ(2, json["nested"]->GetSize());
-    ASSERT_TRUE(json["nested"]->Has("value"));
-    ASSERT_EQ(Json::Json::Type::Integer, (*json["nested"])["value"]->GetType());
-    ASSERT_EQ(42, (int)*(*json["nested"])["value"]);
-    ASSERT_TRUE(json["nested"]->Has("good"));
-    ASSERT_EQ(Json::Json::Type::Boolean, (*json["nested"])["good"]->GetType());
-    ASSERT_EQ(true, (bool)*(*json["nested"])["good"]);
+    ASSERT_EQ(Json::Json::Type::Object, json["nested"].GetType());
+    ASSERT_EQ(2, json["nested"].GetSize());
+    ASSERT_TRUE(json["nested"].Has("value"));
+    ASSERT_EQ(Json::Json::Type::Integer, json["nested"]["value"].GetType());
+    ASSERT_EQ(42, (int)json["nested"]["value"]);
+    ASSERT_TRUE(json["nested"].Has("good"));
+    ASSERT_EQ(Json::Json::Type::Boolean, json["nested"]["good"].GetType());
+    ASSERT_EQ(true, (bool)json["nested"]["good"]);
     ASSERT_TRUE(json.Has("end"));
-    EXPECT_EQ(Json::Json::Type::Null, json["end"]->GetType());
+    EXPECT_EQ(Json::Json::Type::Null, json["end"].GetType());
 }

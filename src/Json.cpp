@@ -1024,34 +1024,34 @@ namespace Json {
         }
     }
 
-    std::shared_ptr< Json > Json::operator[](size_t index) const {
+    Json Json::operator[](size_t index) const {
         if (impl_->type == Type::Array) {
             if (index >= impl_->arrayValue->size()) {
                 return nullptr;
             }
-            return (*impl_->arrayValue)[index];
+            return *(*impl_->arrayValue)[index];
         } else {
             return nullptr;;
         }
     }
 
-    std::shared_ptr< Json > Json::operator[](int index) const {
+    Json Json::operator[](int index) const {
         return (*this)[(size_t)index];
     }
 
-    std::shared_ptr< Json > Json::operator[](const std::string& key) const {
+    Json Json::operator[](const std::string& key) const {
         if (impl_->type == Type::Object) {
             const auto entry = impl_->objectValue->find(key);
             if (entry == impl_->objectValue->end()) {
                 return nullptr;
             }
-            return entry->second;
+            return *entry->second;
         } else {
             return nullptr;
         }
     }
 
-    std::shared_ptr< Json > Json::operator[](const char* key) const {
+    Json Json::operator[](const char* key) const {
         return (*this)[std::string(key)];
     }
 
