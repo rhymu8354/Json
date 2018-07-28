@@ -296,7 +296,7 @@ namespace Json {
          *     in the JSON value, or if the JSON value isn't an object,
          *     a "null" JSON value is returned.
          */
-        Json operator[](size_t index) const;
+        const Json& operator[](size_t index) const;
 
         /**
          * This method returns the element at the given index of the
@@ -313,7 +313,7 @@ namespace Json {
          *     in the JSON value, or if the JSON value isn't an object,
          *     a "null" JSON value is returned.
          */
-        Json operator[](int index) const;
+        const Json& operator[](int index) const;
 
         /**
          * This method returns the element with the given name in the
@@ -329,7 +329,7 @@ namespace Json {
          *     in the JSON value, or if the JSON value isn't an object,
          *     a "null" JSON value is returned.
          */
-        Json operator[](const std::string& key) const;
+        const Json& operator[](const std::string& key) const;
 
         /**
          * This method returns the element with the given name in the
@@ -345,7 +345,7 @@ namespace Json {
          *     in the JSON value, or if the JSON value isn't an object,
          *     a "null" JSON value is returned.
          */
-        Json operator[](const char* key) const;
+        const Json& operator[](const char* key) const;
 
         /**
          * This method makes a copy of the given value and places it at
