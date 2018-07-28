@@ -333,14 +333,14 @@ namespace {
      *     is returned.
      */
     bool CompareJsonArrays(
-        const std::vector< std::shared_ptr< Json::Json > >&lhs,
-        const std::vector< std::shared_ptr< Json::Json > >&rhs
+        const std::vector< Json::Json >&lhs,
+        const std::vector< Json::Json >&rhs
     ) {
         if (lhs.size() != rhs.size()) {
             return false;
         }
         for (size_t i = 0; i < lhs.size(); ++i) {
-            if (*lhs[i] != *rhs[i]) {
+            if (lhs[i] != rhs[i]) {
                 return false;
             }
         }
@@ -363,8 +363,8 @@ namespace {
      *     is returned.
      */
     bool CompareJsonObjects(
-        const std::map< std::string, std::shared_ptr< Json::Json > >&lhs,
-        const std::map< std::string, std::shared_ptr< Json::Json > >&rhs
+        const std::map< std::string, Json::Json >&lhs,
+        const std::map< std::string, Json::Json >&rhs
     ) {
         std::set< std::string > keys;
         for (const auto& entry: lhs) {
@@ -386,7 +386,7 @@ namespace {
             ++it
         ) {
             const auto otherEntry = rhs.find(it->first);
-            if (*it->second != *otherEntry->second) {
+            if (it->second != otherEntry->second) {
                 return false;
             }
         }
@@ -416,8 +416,8 @@ namespace Json {
         union {
             bool booleanValue;
             std::string* stringValue;
-            std::vector< std::shared_ptr< Json > >* arrayValue;
-            std::map< std::string, std::shared_ptr< Json > >* objectValue;
+            std::vector< Json >* arrayValue;
+            std::map< std::string, Json >* objectValue;
             int integerValue;
             double floatingPointValue;
         };
@@ -485,19 +485,17 @@ namespace Json {
                 } break;
 
                 case Type::Array: {
-                    arrayValue = new std::vector< std::shared_ptr< Json > >;
+                    arrayValue = new std::vector< Json >;
                     arrayValue->reserve(other->arrayValue->size());
                     for (const auto& otherElement: *other->arrayValue) {
-                        const auto copy = std::make_shared< Json >(*otherElement);
-                        arrayValue->push_back(copy);
+                        arrayValue->emplace_back(otherElement);
                     }
                 } break;
 
                 case Type::Object: {
-                    objectValue = new std::map< std::string, std::shared_ptr< Json > >;
+                    objectValue = new std::map< std::string, Json >;
                     for (const auto& otherElement: *other->objectValue) {
-                        const auto copy = std::make_shared< Json >(*otherElement.second);
-                        (*objectValue)[otherElement.first] = copy;
+                        objectValue->insert({ otherElement.first, otherElement.second });
                     }
                 } break;
 
@@ -814,15 +812,14 @@ namespace Json {
          *     These are the Unicode code points to parse.
          */
         void ParseAsArray(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
-            std::vector< std::shared_ptr< Json > > newArrayValue;
+            std::vector< Json > newArrayValue;
             size_t offset = 0;
             while (offset < codePoints.size()) {
                 const auto encodedValue = ParseValue(codePoints, offset, ',');
                 if (encodedValue.empty()) {
                     return;
                 }
-                const auto value = std::make_shared< Json >(FromEncoding(encodedValue));
-                newArrayValue.push_back(value);
+                newArrayValue.emplace_back(FromEncoding(encodedValue));
             }
             type = Type::Array;
             arrayValue = new decltype(newArrayValue)(newArrayValue);
@@ -836,23 +833,22 @@ namespace Json {
          *     These are the Unicode code points to parse.
          */
         void ParseAsObject(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
-            std::map< std::string, std::shared_ptr< Json > > newObjectValue;
+            std::map< std::string, Json > newObjectValue;
             size_t offset = 0;
             while (offset < codePoints.size()) {
                 const auto encodedKey = ParseValue(codePoints, offset, ':');
                 if (encodedKey.empty()) {
                     return;
                 }
-                const auto key = std::make_shared< Json >(FromEncoding(encodedKey));
-                if (key->GetType() != Type::String) {
+                const auto key = FromEncoding(encodedKey);
+                if (key.GetType() != Type::String) {
                     return;
                 }
                 const auto encodedValue = ParseValue(codePoints, offset, ',');
                 if (encodedValue.empty()) {
                     return;
                 }
-                const auto value = std::make_shared< Json >(FromEncoding(encodedValue));
-                newObjectValue[(std::string)*key] = value;
+                newObjectValue[(std::string)key] = FromEncoding(encodedValue);
             }
             type = Type::Object;
             objectValue = new decltype(newObjectValue)(newObjectValue);
@@ -885,11 +881,11 @@ namespace Json {
             } break;
 
             case Type::Array: {
-                impl_->arrayValue = new std::vector< std::shared_ptr< Json > >;
+                impl_->arrayValue = new std::vector< Json >;
             } break;
 
             case Type::Object: {
-                impl_->objectValue = new std::map< std::string, std::shared_ptr< Json > >;
+                impl_->objectValue = new std::map< std::string, Json >;
             } break;
 
             default: break;
@@ -941,14 +937,14 @@ namespace Json {
         : impl_(new Impl)
     {
         impl_->type = Type::Array;
-        impl_->arrayValue = new std::vector< std::shared_ptr< Json > >(args.size());
+        impl_->arrayValue = new std::vector< Json >(args.size());
         size_t index = 0;
         for (
             auto arg = args.begin();
             arg != args.end();
             ++arg, ++index
         ) {
-            (*impl_->arrayValue)[index] = std::make_shared< Json >(*arg);
+            (*impl_->arrayValue)[index] = *arg;
         }
     }
 
@@ -1035,7 +1031,7 @@ namespace Json {
             if (index >= impl_->arrayValue->size()) {
                 return null;
             }
-            return *(*impl_->arrayValue)[index];
+            return (*impl_->arrayValue)[index];
         } else {
             return null;
         }
@@ -1051,7 +1047,7 @@ namespace Json {
             if (entry == impl_->objectValue->end()) {
                 return null;
             }
-            return *entry->second;
+            return entry->second;
         } else {
             return null;
         }
@@ -1078,7 +1074,7 @@ namespace Json {
                 index,
                 impl_->arrayValue->size()
             ),
-            std::make_shared< Json >(value)
+            value
         );
         impl_->encoding.clear();
     }
@@ -1090,7 +1086,7 @@ namespace Json {
         if (impl_->type != Type::Object) {
             return;
         }
-        (*impl_->objectValue)[key] = std::make_shared< Json >(value);
+        (*impl_->objectValue)[key] = value;
         impl_->encoding.clear();
     }
 
@@ -1170,7 +1166,7 @@ namespace Json {
                             impl_->encoding += (nestedOptions.pretty ? ", " : ",");
                             wrappedEncoding += ",\r\n";
                         }
-                        const auto encodedValue = value->ToEncoding(nestedOptions);
+                        const auto encodedValue = value.ToEncoding(nestedOptions);
                         impl_->encoding += encodedValue;
                         wrappedEncoding += nestedIndentation;
                         wrappedEncoding += encodedValue;
@@ -1218,7 +1214,7 @@ namespace Json {
                         const auto encodedValue = (
                             keyAsJson.ToEncoding(nestedOptions)
                             + (nestedOptions.pretty ? ": " : ":")
-                            + entry.second->ToEncoding(nestedOptions)
+                            + entry.second.ToEncoding(nestedOptions)
                         );
                         impl_->encoding += encodedValue;
                         wrappedEncoding += nestedIndentation;
