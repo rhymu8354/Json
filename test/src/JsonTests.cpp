@@ -394,10 +394,19 @@ TEST(JsonTests, PrettyPrintingArray) {
 }
 
 TEST(JsonTests, JsonArrayInitializerList) {
-    Json::Json json{
+    const auto json = Json::JsonArray({
         42, "Hello, World!", true
-    };
+    });
     ASSERT_EQ("[42,\"Hello, World!\",true]", json.ToEncoding());
+}
+
+TEST(JsonTests, JsonObjectInitializerList) {
+    const auto json = Json::JsonObject({
+        {"Answer", 42},
+        {"Greeting", "Hello, World!"},
+        {"List", Json::JsonArray({1, 2, 3})},
+    });
+    ASSERT_EQ("{\"Answer\":42,\"Greeting\":\"Hello, World!\",\"List\":[1,2,3]}", json.ToEncoding());
 }
 
 TEST(JsonTests, JsonDecodeObjectWithDuplicateKeys) {

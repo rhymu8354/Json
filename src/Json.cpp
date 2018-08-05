@@ -933,21 +933,6 @@ namespace Json {
         impl_->stringValue = new std::string(value);
     }
 
-    Json::Json(std::initializer_list< const Json > args)
-        : impl_(new Impl)
-    {
-        impl_->type = Type::Array;
-        impl_->arrayValue = new std::vector< Json >(args.size());
-        size_t index = 0;
-        for (
-            auto arg = args.begin();
-            arg != args.end();
-            ++arg, ++index
-        ) {
-            (*impl_->arrayValue)[index] = *arg;
-        }
-    }
-
     bool Json::operator==(const Json& other) const {
         if (impl_->type != other.impl_->type) {
             return false;
@@ -1349,6 +1334,30 @@ namespace Json {
     Json Json::FromEncoding(const std::string& encodingBeforeTrim) {
         Utf8::Utf8 decoder;
         return FromEncoding(decoder.Decode(encodingBeforeTrim));
+    }
+
+    Json JsonArray(std::initializer_list< const Json > args) {
+        Json json(Json::Type::Array);
+        for (
+            auto arg = args.begin();
+            arg != args.end();
+            ++arg
+        ) {
+            json.Add(*arg);
+        }
+        return json;
+    }
+
+    Json JsonObject(std::initializer_list< std::pair< const std::string, const Json > > args) {
+        Json json(Json::Type::Object);
+        for (
+            auto arg = args.begin();
+            arg != args.end();
+            ++arg
+        ) {
+            json.Set(arg->first, arg->second);
+        }
+        return json;
     }
 
     void PrintTo(

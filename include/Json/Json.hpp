@@ -14,6 +14,7 @@
 #include <stddef.h>
 #include <string>
 #include <Utf8/Utf8.hpp>
+#include <utility>
 
 namespace Json {
 
@@ -159,15 +160,6 @@ namespace Json {
          *     This is the value to wrap in JSON.
          */
         Json(const std::string& value);
-
-        /**
-         * This constructs a JSON array containing copies of the
-         * elements in the given initializer list.
-         *
-         * @param[in] args
-         *     These are the values to copy into the new array.
-         */
-        Json(std::initializer_list< const Json > args);
 
         /**
          * This is the equality comparison operator.
@@ -462,6 +454,30 @@ namespace Json {
          */
         std::unique_ptr< struct Impl > impl_;
     };
+
+    /**
+     * This constructs a JSON array containing copies of the
+     * elements in the given initializer list.
+     *
+     * @param[in] args
+     *     These are the values to copy into the new array.
+     *
+     * @return
+     *     The newly constructed JSON array is returned.
+     */
+    Json JsonArray(std::initializer_list< const Json > args);
+
+    /**
+     * This constructs a JSON object containing copies of the
+     * elements in the given initializer list.
+     *
+     * @param[in] args
+     *     These are the values to copy into the new object.
+     *
+     * @return
+     *     The newly constructed JSON object is returned.
+     */
+    Json JsonObject(std::initializer_list< std::pair< const std::string, const Json > > args);
 
     /**
      * This is a support function for Google Test to print out
