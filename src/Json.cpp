@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <Json/Json.hpp>
+#include <limits>
 #include <map>
 #include <math.h>
 #include <set>
@@ -549,12 +550,12 @@ namespace Json {
                             (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
                             && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
                         ) {
-                            const int previousValue = value;
-                            value *= 10;
-                            value += (int)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
-                            if (value / 10 != previousValue) {
+                            const auto digit = (int)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
+                            if ((std::numeric_limits< decltype(value) >::max() - digit) / 10 < value) {
                                 return;
                             }
+                            value *= 10;
+                            value += digit;
                             ++index;
                         } else {
                             return;
