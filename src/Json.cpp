@@ -512,61 +512,25 @@ namespace Json {
          *     This is the code point sequence to decode.
          */
         void DecodeAsInteger(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
-            size_t index = 0;
-            size_t state = 0;
-            bool negative = false;
-            int value = 0;
-            while (index < codePoints.size()) {
-                switch (state) {
-                    case 0: { // [ minus ]
-                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'-') {
-                            negative = true;
-                            ++index;
-                        }
-                        state = 1;
-                    } break;
-
-                    case 1: { // zero / 1-9
-                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'0') {
-                            state = 2;
-                        } else if (
-                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'1')
-                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
-                        ) {
-                            state = 3;
-                            value = (int)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
-                        } else {
-                            return;
-                        }
-                        ++index;
-                    } break;
-
-                    case 2: { // extra junk!
-                        return;
-                    } break;
-
-                    case 3: { // *DIGIT
-                        if (
-                            (codePoints[index] >= (Utf8::UnicodeCodePoint)'0')
-                            && (codePoints[index] <= (Utf8::UnicodeCodePoint)'9')
-                        ) {
-                            const auto digit = (int)(codePoints[index] - (Utf8::UnicodeCodePoint)'0');
-                            if ((std::numeric_limits< decltype(value) >::max() - digit) / 10 < value) {
-                                return;
-                            }
-                            value *= 10;
-                            value += digit;
-                            ++index;
-                        } else {
-                            return;
-                        }
-                    } break;
-                }
+            Utf8::Utf8 encoder;
+            const auto s = encoder.Encode(codePoints);
+            intmax_t value;
+            if (
+                SystemAbstractions::ToInteger(
+                    std::string(s.begin(), s.end()),
+                    value
+                ) != SystemAbstractions::ToIntegerResult::Success
+            ) {
+                return;
             }
-            if (state >= 2) {
-                type = Type::Integer;
-                integerValue = (value * (negative ? -1 : 1));
+            if (
+                (value < (decltype(value))std::numeric_limits< decltype(integerValue) >::min())
+                || (value > (decltype(value))std::numeric_limits< decltype(integerValue) >::max())
+            ) {
+                return;
             }
+            type = Type::Integer;
+            integerValue = (decltype(integerValue))value;
         }
 
         /**
