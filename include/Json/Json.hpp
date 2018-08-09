@@ -93,11 +93,11 @@ namespace Json {
 
         // Lifecycle management
     public:
-        ~Json();
+        ~Json() noexcept;
         Json(const Json&);
-        Json(Json&&);
+        Json(Json&&) noexcept;
         Json& operator=(const Json&);
-        Json& operator=(Json&&);
+        Json& operator=(Json&&) noexcept;
 
         // Public methods
     public:

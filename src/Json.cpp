@@ -429,7 +429,7 @@ namespace Json {
 
         // Lifecycle management
 
-        ~Impl() {
+        ~Impl() noexcept {
             switch (type) {
                 case Type::String: {
                     delete stringValue;
@@ -447,9 +447,9 @@ namespace Json {
             }
         }
         Impl(const Impl&) = delete;
-        Impl(Impl&&) = delete;
+        Impl(Impl&&) noexcept = delete;
         Impl& operator=(const Impl&) = delete;
-        Impl& operator=(Impl&&) = delete;
+        Impl& operator=(Impl&&) noexcept = delete;
 
         // Methods
 
@@ -855,14 +855,14 @@ namespace Json {
         }
     };
 
-    Json::~Json() = default;
+    Json::~Json() noexcept = default;
     Json::Json(const Json& other)
         : impl_(new Impl)
     {
         impl_->CopyFrom(other.impl_);
     }
-    Json::Json(Json&&) = default;
-    Json& Json::operator=(Json&&) = default;
+    Json::Json(Json&&) noexcept = default;
+    Json& Json::operator=(Json&&) noexcept = default;
     Json& Json::operator=(const Json& other) {
         if (this != &other) {
             impl_.reset(new Impl());
