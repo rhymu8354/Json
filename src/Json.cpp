@@ -524,7 +524,7 @@ namespace Json {
                 return;
             }
             if (
-                (value < (decltype(value))std::numeric_limits< decltype(integerValue) >::min())
+                (value < (decltype(value))std::numeric_limits< decltype(integerValue) >::lowest())
                 || (value > (decltype(value))std::numeric_limits< decltype(integerValue) >::max())
             ) {
                 return;
