@@ -574,8 +574,18 @@ namespace Json {
                         ++index;
                     } break;
 
-                    case 2: { // extra junk!
-                        return;
+                    case 2: { // . / e / E
+                        if (codePoints[index] == (Utf8::UnicodeCodePoint)'.') {
+                            state = 4;
+                        } else if (
+                            (codePoints[index] == (Utf8::UnicodeCodePoint)'e')
+                            || (codePoints[index] == (Utf8::UnicodeCodePoint)'E')
+                        ) {
+                            state = 6;
+                        } else {
+                            return;
+                        }
+                        ++index;
                     } break;
 
                     case 3: { // *DIGIT / . / e / E
@@ -1105,6 +1115,9 @@ namespace Json {
 
                 case Type::FloatingPoint: {
                     impl_->encoding = SystemAbstractions::sprintf("%lg", impl_->floatingPointValue);
+                    if (impl_->encoding.find_first_not_of("0123456789-") == std::string::npos) {
+                        impl_->encoding += ".0";
+                    }
                 } break;
 
                 case Type::Array: {

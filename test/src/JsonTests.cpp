@@ -141,6 +141,10 @@ TEST(JsonTests, ToInteger) {
 TEST(JsonTests, FromFloatingPoint) {
     Json::Json json(3.14159);
     ASSERT_EQ("3.14159", json.ToEncoding());
+    json = Json::Json(0.0);
+    ASSERT_EQ("0.0", json.ToEncoding());
+    json = Json::Json(123.0);
+    ASSERT_EQ("123.0", json.ToEncoding());
 }
 
 TEST(JsonTests, ToFloatingPoint) {
@@ -154,6 +158,8 @@ TEST(JsonTests, ToFloatingPoint) {
     ASSERT_TRUE(json == Json::Json(5.012e+12));
     json = Json::Json::FromEncoding("32E+0");
     ASSERT_TRUE(json == Json::Json(32E+0));
+    json = Json::Json::FromEncoding("0.0");
+    ASSERT_TRUE(json == Json::Json(0.0));
 }
 
 TEST(JsonTests, SurrogatePairEncoding) {
