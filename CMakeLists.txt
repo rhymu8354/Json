@@ -6,11 +6,11 @@ cmake_minimum_required(VERSION 3.8)
 set(This Json)
 
 set(Headers
-    include/Json/Json.hpp
+    include/Json/Value.hpp
 )
 
 set(Sources
-    src/Json.cpp
+    src/Value.cpp
 )
 
 add_library(${This} STATIC ${Sources} ${Headers})

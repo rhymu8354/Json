@@ -1,13 +1,13 @@
 /**
- * @file Json.cpp
+ * @file Value.cpp
  *
- * This module contains the implementation of the Json::Json class.
+ * This module contains the implementation of the Json::Value class.
  *
  * © 2018 by Richard Walters
  */
 
 #include <algorithm>
-#include <Json/Json.hpp>
+#include <Json/Value.hpp>
 #include <limits>
 #include <map>
 #include <math.h>
@@ -24,7 +24,7 @@ namespace {
      * This is returned from indexers when indexed values are
      * not found.
      */
-    const Json::Json null = nullptr;
+    const Json::Value null = nullptr;
 
     /**
      * These are the character that are considered "whitespace"
@@ -142,7 +142,7 @@ namespace {
      *
      * @param[in] options
      *     This is used to configure various options having to do with
-     *     encoding a Json object into its string format.
+     *     encoding a Json value into its string format.
      *
      * @return
      *     The encoded string is returned.
@@ -334,8 +334,8 @@ namespace {
      *     is returned.
      */
     bool CompareJsonArrays(
-        const std::vector< Json::Json >&lhs,
-        const std::vector< Json::Json >&rhs
+        const std::vector< Json::Value >&lhs,
+        const std::vector< Json::Value >&rhs
     ) {
         if (lhs.size() != rhs.size()) {
             return false;
@@ -349,23 +349,24 @@ namespace {
     }
 
     /**
-     * This function performs a deep comparison of two arrays
-     * of JSON values.
+     * This function performs a deep comparison of two JSON objects.
      *
      * @param[in] lhs
-     *     This is the first array of JSON values to compare.
+     *     This is the dictionary of keys and values in
+     *     the first JSON object.
      *
      * @param[in] rhs
-     *     This is the second array of JSON values to compare.
+     *     This is the dictionary of keys and values in
+     *     the second JSON object.
      *
      * @return
      *     An indication of whether or not the two given
-     *     arrays of JSON values are considered equalivalent
+     *     JSON objects are considered equalivalent
      *     is returned.
      */
     bool CompareJsonObjects(
-        const std::map< std::string, Json::Json >&lhs,
-        const std::map< std::string, Json::Json >&rhs
+        const std::map< std::string, Json::Value >&lhs,
+        const std::map< std::string, Json::Value >&rhs
     ) {
         std::set< std::string > keys;
         for (const auto& entry: lhs) {
@@ -399,26 +400,26 @@ namespace {
 namespace Json {
 
     /**
-     * This contains the private properties of a Json instance.
+     * This contains the private properties of a Value instance.
      */
-    struct Json::Impl {
+    struct Value::Impl {
         // Properties
 
         /**
          * This indicates the type of the value represented
-         * by the JSON object.
+         * by the JSON value.
          */
         Type type = Type::Invalid;
 
         /**
          * This holds the actual value represented by the JSON
-         * object.  Use the member that matches the type.
+         * value.  Use the member that matches the type.
          */
         union {
             bool booleanValue;
             std::string* stringValue;
-            std::vector< Json >* arrayValue;
-            std::map< std::string, Json >* objectValue;
+            std::vector< Value >* arrayValue;
+            std::map< std::string, Value >* objectValue;
             int integerValue;
             double floatingPointValue;
         };
@@ -486,7 +487,7 @@ namespace Json {
                 } break;
 
                 case Type::Array: {
-                    arrayValue = new std::vector< Json >;
+                    arrayValue = new std::vector< Value >;
                     arrayValue->reserve(other->arrayValue->size());
                     for (const auto& otherElement: *other->arrayValue) {
                         arrayValue->emplace_back(otherElement);
@@ -494,7 +495,7 @@ namespace Json {
                 } break;
 
                 case Type::Object: {
-                    objectValue = new std::map< std::string, Json >;
+                    objectValue = new std::map< std::string, Value >;
                     for (const auto& otherElement: *other->objectValue) {
                         objectValue->insert({ otherElement.first, otherElement.second });
                     }
@@ -787,7 +788,7 @@ namespace Json {
          *     These are the Unicode code points to parse.
          */
         void ParseAsArray(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
-            std::vector< Json > newArrayValue;
+            std::vector< Value > newArrayValue;
             size_t offset = 0;
             while (offset < codePoints.size()) {
                 const auto encodedValue = ParseValue(codePoints, offset, ',');
@@ -801,14 +802,14 @@ namespace Json {
         }
 
         /**
-         * This function parses the given Unicode code points as an object
-         * JSON value.
+         * This function parses the given Unicode code points as a
+         * JSON object.
          *
          * @param[in] codePoints
          *     These are the Unicode code points to parse.
          */
         void ParseAsObject(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
-            std::map< std::string, Json > newObjectValue;
+            std::map< std::string, Value > newObjectValue;
             size_t offset = 0;
             while (offset < codePoints.size()) {
                 const auto encodedKey = ParseValue(codePoints, offset, ':');
@@ -830,15 +831,15 @@ namespace Json {
         }
     };
 
-    Json::~Json() noexcept = default;
-    Json::Json(const Json& other)
+    Value::~Value() noexcept = default;
+    Value::Value(const Value& other)
         : impl_(new Impl)
     {
         impl_->CopyFrom(other.impl_);
     }
-    Json::Json(Json&&) noexcept = default;
-    Json& Json::operator=(Json&&) noexcept = default;
-    Json& Json::operator=(const Json& other) {
+    Value::Value(Value&&) noexcept = default;
+    Value& Value::operator=(Value&&) noexcept = default;
+    Value& Value::operator=(const Value& other) {
         if (this != &other) {
             impl_.reset(new Impl());
             impl_->CopyFrom(other.impl_);
@@ -846,7 +847,7 @@ namespace Json {
         return *this;
     }
 
-    Json::Json(Type type)
+    Value::Value(Type type)
         : impl_(new Impl)
     {
         impl_->type = type;
@@ -856,59 +857,59 @@ namespace Json {
             } break;
 
             case Type::Array: {
-                impl_->arrayValue = new std::vector< Json >;
+                impl_->arrayValue = new std::vector< Value >;
             } break;
 
             case Type::Object: {
-                impl_->objectValue = new std::map< std::string, Json >;
+                impl_->objectValue = new std::map< std::string, Value >;
             } break;
 
             default: break;
         }
     }
 
-    Json::Json(nullptr_t)
+    Value::Value(nullptr_t)
         : impl_(new Impl)
     {
         impl_->type = Type::Null;
     }
 
-    Json::Json(bool value)
+    Value::Value(bool value)
         : impl_(new Impl)
     {
         impl_->type = Type::Boolean;
         impl_->booleanValue = value;
     }
 
-    Json::Json(int value)
+    Value::Value(int value)
         : impl_(new Impl)
     {
         impl_->type = Type::Integer;
         impl_->integerValue = value;
     }
 
-    Json::Json(double value)
+    Value::Value(double value)
         : impl_(new Impl)
     {
         impl_->type = Type::FloatingPoint;
         impl_->floatingPointValue = value;
     }
 
-    Json::Json(const char* value)
+    Value::Value(const char* value)
         : impl_(new Impl)
     {
         impl_->type = Type::String;
         impl_->stringValue = new std::string(value);
     }
 
-    Json::Json(const std::string& value)
+    Value::Value(const std::string& value)
         : impl_(new Impl)
     {
         impl_->type = Type::String;
         impl_->stringValue = new std::string(value);
     }
 
-    bool Json::operator==(const Json& other) const {
+    bool Value::operator==(const Value& other) const {
         if (impl_->type != other.impl_->type) {
             return false;
         } else switch (impl_->type) {
@@ -924,11 +925,11 @@ namespace Json {
         }
     }
 
-    bool Json::operator!=(const Json& other) const {
+    bool Value::operator!=(const Value& other) const {
         return !(*this == other);
     }
 
-    Json::operator bool() const {
+    Value::operator bool() const {
         if (impl_->type == Type::Boolean) {
             return impl_->booleanValue;
         } else {
@@ -936,7 +937,7 @@ namespace Json {
         }
     }
 
-    Json::operator std::string() const {
+    Value::operator std::string() const {
         if (impl_->type == Type::String) {
             return *impl_->stringValue;
         } else {
@@ -944,7 +945,7 @@ namespace Json {
         }
     }
 
-    Json::operator int() const {
+    Value::operator int() const {
         if (impl_->type == Type::Integer) {
             return impl_->integerValue;
         } else if (impl_->type == Type::FloatingPoint) {
@@ -954,7 +955,7 @@ namespace Json {
         }
     }
 
-    Json::operator double() const {
+    Value::operator double() const {
         if (impl_->type == Type::Integer) {
             return (double)impl_->integerValue;
         } else if (impl_->type == Type::FloatingPoint) {
@@ -964,11 +965,11 @@ namespace Json {
         }
     }
 
-    auto Json::GetType() const -> Type {
+    auto Value::GetType() const -> Type {
         return impl_->type;
     }
 
-    size_t Json::GetSize() const {
+    size_t Value::GetSize() const {
         if (impl_->type == Type::Array) {
             return impl_->arrayValue->size();
         } else if (impl_->type == Type::Object) {
@@ -978,7 +979,7 @@ namespace Json {
         }
     }
 
-    bool Json::Has(const std::string& key) const {
+    bool Value::Has(const std::string& key) const {
         if (impl_->type == Type::Object) {
             return (impl_->objectValue->find(key) != impl_->objectValue->end());
         } else {
@@ -986,7 +987,7 @@ namespace Json {
         }
     }
 
-    std::vector< std::string > Json::GetKeys() const {
+    std::vector< std::string > Value::GetKeys() const {
         std::vector< std::string > keys;
         if (impl_->type == Type::Object) {
             keys.reserve(impl_->objectValue->size());
@@ -997,7 +998,7 @@ namespace Json {
         return keys;
     }
 
-    const Json& Json::operator[](size_t index) const {
+    const Value& Value::operator[](size_t index) const {
         if (impl_->type == Type::Array) {
             if (index >= impl_->arrayValue->size()) {
                 return null;
@@ -1008,11 +1009,11 @@ namespace Json {
         }
     }
 
-    const Json& Json::operator[](int index) const {
+    const Value& Value::operator[](int index) const {
         return (*this)[(size_t)index];
     }
 
-    const Json& Json::operator[](const std::string& key) const {
+    const Value& Value::operator[](const std::string& key) const {
         if (impl_->type == Type::Object) {
             const auto entry = impl_->objectValue->find(key);
             if (entry == impl_->objectValue->end()) {
@@ -1024,11 +1025,11 @@ namespace Json {
         }
     }
 
-    const Json& Json::operator[](const char* key) const {
+    const Value& Value::operator[](const char* key) const {
         return (*this)[std::string(key)];
     }
 
-    void Json::Add(const Json& value) {
+    void Value::Add(const Value& value) {
         if (impl_->type != Type::Array) {
             return;
         }
@@ -1036,7 +1037,7 @@ namespace Json {
         impl_->encoding.clear();
     }
 
-    void Json::Insert(const Json& value, size_t index) {
+    void Value::Insert(const Value& value, size_t index) {
         if (impl_->type != Type::Array) {
             return;
         }
@@ -1050,9 +1051,9 @@ namespace Json {
         impl_->encoding.clear();
     }
 
-    void Json::Set(
+    void Value::Set(
         const std::string& key,
-        const Json& value
+        const Value& value
     ) {
         if (impl_->type != Type::Object) {
             return;
@@ -1061,7 +1062,7 @@ namespace Json {
         impl_->encoding.clear();
     }
 
-    void Json::Remove(size_t index) {
+    void Value::Remove(size_t index) {
         if (impl_->type != Type::Array) {
             return;
         }
@@ -1073,7 +1074,7 @@ namespace Json {
         }
     }
 
-    void Json::Remove(const std::string& key) {
+    void Value::Remove(const std::string& key) {
         if (impl_->type != Type::Object) {
             return;
         }
@@ -1081,7 +1082,7 @@ namespace Json {
         impl_->encoding.clear();
     }
 
-    std::string Json::ToEncoding(const EncodingOptions& options) const {
+    std::string Value::ToEncoding(const EncodingOptions& options) const {
         if (impl_->type == Type::Invalid) {
             return SystemAbstractions::sprintf(
                 "(Invalid JSON: %s)",
@@ -1184,7 +1185,7 @@ namespace Json {
                             impl_->encoding += (nestedOptions.pretty ? ", " : ",");
                             wrappedEncoding += ",\r\n";
                         }
-                        const Json keyAsJson(entry.first);
+                        const Value keyAsJson(entry.first);
                         const auto encodedValue = (
                             keyAsJson.ToEncoding(nestedOptions)
                             + (nestedOptions.pretty ? ": " : ":")
@@ -1221,8 +1222,8 @@ namespace Json {
         return impl_->encoding;
     }
 
-    Json Json::FromEncoding(const std::vector< Utf8::UnicodeCodePoint >& encodingBeforeTrim) {
-        Json json;
+    Value Value::FromEncoding(const std::vector< Utf8::UnicodeCodePoint >& encodingBeforeTrim) {
+        Value json;
         const auto firstNonWhitespaceCharacter = FindFirstNotOf(
             encodingBeforeTrim,
             WHITESPACE_CHARACTERS,
@@ -1309,13 +1310,13 @@ namespace Json {
         return json;
     }
 
-    Json Json::FromEncoding(const std::string& encodingBeforeTrim) {
+    Value Value::FromEncoding(const std::string& encodingBeforeTrim) {
         Utf8::Utf8 decoder;
         return FromEncoding(decoder.Decode(encodingBeforeTrim));
     }
 
-    Json JsonArray(std::initializer_list< const Json > args) {
-        Json json(Json::Type::Array);
+    Value Array(std::initializer_list< const Value > args) {
+        Value json(Value::Type::Array);
         for (
             auto arg = args.begin();
             arg != args.end();
@@ -1326,8 +1327,8 @@ namespace Json {
         return json;
     }
 
-    Json JsonObject(std::initializer_list< std::pair< const std::string, const Json > > args) {
-        Json json(Json::Type::Object);
+    Value Object(std::initializer_list< std::pair< const std::string, const Value > > args) {
+        Value json(Value::Type::Object);
         for (
             auto arg = args.begin();
             arg != args.end();
@@ -1339,35 +1340,35 @@ namespace Json {
     }
 
     void PrintTo(
-        Json::Type type,
+        Value::Type type,
         std::ostream* os
     ) {
         switch (type) {
-            case Json::Type::Invalid: {
+            case Value::Type::Invalid: {
                 *os << "Invalid";
             } break;
 
-            case Json::Type::Boolean: {
+            case Value::Type::Boolean: {
                 *os << "Boolean";
             } break;
 
-            case Json::Type::String: {
+            case Value::Type::String: {
                 *os << "String";
             } break;
 
-            case Json::Type::Integer: {
+            case Value::Type::Integer: {
                 *os << "Integer";
             } break;
 
-            case Json::Type::FloatingPoint: {
+            case Value::Type::FloatingPoint: {
                 *os << "FloatingPoint";
             } break;
 
-            case Json::Type::Array: {
+            case Value::Type::Array: {
                 *os << "Array";
             } break;
 
-            case Json::Type::Object: {
+            case Value::Type::Object: {
                 *os << "Object";
             } break;
 
@@ -1378,7 +1379,7 @@ namespace Json {
     }
 
     void PrintTo(
-        const Json& json,
+        const Value& json,
         std::ostream* os
     ) {
         *os << json.ToEncoding();

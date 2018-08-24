@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.8)
 set(This JsonTests)
 
 set(Sources
-    src/JsonTests.cpp
+    src/ValueTests.cpp
 )
 
 add_executable(${This} ${Sources})
