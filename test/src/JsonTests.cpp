@@ -140,11 +140,15 @@ TEST(JsonTests, ToInteger) {
 
 TEST(JsonTests, FromFloatingPoint) {
     Json::Json json(3.14159);
-    ASSERT_EQ("3.14159", json.ToEncoding());
+    EXPECT_EQ("3.14159", json.ToEncoding());
     json = Json::Json(0.0);
-    ASSERT_EQ("0.0", json.ToEncoding());
+    EXPECT_EQ("0.0", json.ToEncoding());
     json = Json::Json(123.0);
-    ASSERT_EQ("123.0", json.ToEncoding());
+    EXPECT_EQ("123.0", json.ToEncoding());
+    json = Json::Json(60412.769);
+    EXPECT_EQ("60412.769", json.ToEncoding());
+    json = Json::Json(604124.769);
+    EXPECT_EQ("604124.769", json.ToEncoding());
 }
 
 TEST(JsonTests, ToFloatingPoint) {

@@ -1114,7 +1114,7 @@ namespace Json {
                 } break;
 
                 case Type::FloatingPoint: {
-                    impl_->encoding = SystemAbstractions::sprintf("%lg", impl_->floatingPointValue);
+                    impl_->encoding = SystemAbstractions::sprintf("%.15lg", impl_->floatingPointValue);
                     if (impl_->encoding.find_first_not_of("0123456789-") == std::string::npos) {
                         impl_->encoding += ".0";
                     }
