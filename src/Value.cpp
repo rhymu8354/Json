@@ -235,7 +235,6 @@ namespace {
                         cpFromHexDigits = 0;
                         hexDigitsOriginal = { 0x5C, 0x75 };
                     } else if (firstHalfOfSurrogatePair == 0) {
-                        Utf8::UnicodeCodePoint alternative = cp;
                         const auto entry = SPECIAL_ESCAPE_DECODINGS.find(cp);
                         if (entry == SPECIAL_ESCAPE_DECODINGS.end()) {
                             return false;
