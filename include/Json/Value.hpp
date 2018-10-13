@@ -118,7 +118,7 @@ namespace Json {
          * @param[in] null
          *     This is the value to wrap in JSON.
          */
-        Value(nullptr_t);
+        Value(std::nullptr_t);
 
         /**
          * This constructs a JSON value consisting of a boolean value.

@@ -867,7 +867,7 @@ namespace Json {
         }
     }
 
-    Value::Value(nullptr_t)
+    Value::Value(std::nullptr_t)
         : impl_(new Impl)
     {
         impl_->type = Type::Null;
