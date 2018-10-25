@@ -286,8 +286,8 @@ namespace Json {
         std::vector< std::string > GetKeys() const;
 
         /**
-         * This method returns the element at the given index of the
-         * JSON value, if it's an array.
+         * This method returns a const lvalue reference to the element at the
+         * given index of the JSON value, if it's an array.
          *
          * @param[in] index
          *     This is the position, relative to the front of the array,
@@ -296,15 +296,16 @@ namespace Json {
          * @return
          *     The element at the given index of the JSON value is returned.
          *
-         *     If there is no element with the given name
-         *     in the JSON value, or if the JSON value isn't an object,
-         *     a "null" JSON value is returned.
+         *     If there is no element at the given index
+         *     in the JSON array, or if the JSON value isn't an array,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
          */
         const Value& operator[](size_t index) const;
 
         /**
-         * This method returns the element at the given index of the
-         * JSON value, if it's an array.
+         * This method returns a const lvalue reference to the element at the
+         * given index of the JSON value, if it's an array.
          *
          * @param[in] index
          *     This is the position, relative to the front of the array,
@@ -313,15 +314,16 @@ namespace Json {
          * @return
          *     The element at the given index of the JSON value is returned.
          *
-         *     If there is no element with the given name
-         *     in the JSON value, or if the JSON value isn't an object,
-         *     a "null" JSON value is returned.
+         *     If there is no element at the given index
+         *     in the JSON array, or if the JSON value isn't an array,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
          */
         const Value& operator[](int index) const;
 
         /**
-         * This method returns the element with the given name in the
-         * JSON value, if it's an object.
+         * This method returns a const lvalue reference to the element with the
+         * given name in the JSON value, if it's an object.
          *
          * @param[in] key
          *     This is the name of the element to return.
@@ -330,14 +332,15 @@ namespace Json {
          *     The element with the given name in the JSON value is returned.
          *
          *     If there is no element with the given name
-         *     in the JSON value, or if the JSON value isn't an object,
-         *     a "null" JSON value is returned.
+         *     in the JSON object, or if the JSON value isn't an object,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
          */
         const Value& operator[](const std::string& key) const;
 
         /**
-         * This method returns the element with the given name in the
-         * JSON value, if it's an object.
+         * This method returns a const lvalue reference to the element with the
+         * given name in the JSON value, if it's an object.
          *
          * @param[in] key
          *     This is the name of the element to return.
@@ -346,10 +349,82 @@ namespace Json {
          *     The element with the given name in the JSON value is returned.
          *
          *     If there is no element with the given name
-         *     in the JSON value, or if the JSON value isn't an object,
-         *     a "null" JSON value is returned.
+         *     in the JSON object, or if the JSON value isn't an object,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
          */
         const Value& operator[](const char* key) const;
+
+        /**
+         * This method returns an lvalue reference to the element at the given
+         * index of the JSON value, if it's an array.  If there was no element
+         * at the given index, a null value is inserted there.
+         *
+         * @param[in] index
+         *     This is the position, relative to the front of the array,
+         *     of the element to return.
+         *
+         * @return
+         *     The element at the given index of the JSON value is returned.
+         *
+         *     If the JSON value isn't an object, a reference to a special
+         *     unmodifyable "null" JSON value is returned.
+         */
+        Value& operator[](size_t index);
+
+        /**
+         * This method returns an lvalue reference to the element at the given
+         * index of the JSON value, if it's an array.  If the index is
+         * non-negative, and there was no element at the given index, a null
+         * value is inserted there.
+         *
+         * @param[in] index
+         *     This is the position, relative to the front of the array,
+         *     of the element to return.
+         *
+         * @return
+         *     The element at the given index of the JSON value is returned.
+         *
+         *     If the given index is negative, or if the JSON value isn't an
+         *     object, a reference to a special unmodifyable "null" JSON value
+         *     is returned.
+         */
+        Value& operator[](int index);
+
+        /**
+         * This method returns an lvalue reference to the element with the
+         * given name in the JSON value, if it's an object.  If there was no
+         * element with the given name, a null value is set with the given
+         * name in the object.
+         *
+         * @param[in] key
+         *     This is the name of the element to return.
+         *
+         * @return
+         *     The element with the given name in the JSON value is returned.
+         *
+         *     If the JSON value isn't an object, a reference to a special
+         *     unmodifyable "null" JSON value is returned.
+         */
+        Value& operator[](const std::string& key);
+
+        /**
+         * This method returns an lvalue reference to the element with the
+         * given name in the JSON value, if it's an object.  If there was no
+         * element with the given name, a null value is set with the given
+         * name in the object.
+         *
+         * @param[in] key
+         *     This is the name of the element to return.
+         *
+         * @return
+         *     The element with the given name in the JSON value is returned.
+         *
+         *     If the given key is a null pointer, or if the JSON value isn't
+         *     an object, a reference to a special unmodifyable "null" JSON
+         *     value is returned.
+         */
+        Value& operator[](const char* key);
 
         /**
          * This method makes a copy of the given value and places it at
@@ -357,8 +432,15 @@ namespace Json {
          *
          * @param[in] value
          *     This is the value to copy to the end of the array.
+         *
+         * @return
+         *     A reference to the new value in the array is returned.
+         *
+         *     If the JSON value isn't an array,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
          */
-        void Add(const Value& value);
+        Value& Add(const Value& value);
 
         /**
          * This method makes a copy of the given value and places it at
@@ -371,8 +453,15 @@ namespace Json {
          *
          * @param[in] index
          *     This is the position into which to copy the given value.
+         *
+         * @return
+         *     A reference to the new value in the array is returned.
+         *
+         *     If the JSON value isn't an array,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
          */
-        void Insert(const Value& value, size_t index);
+        Value& Insert(const Value& value, size_t index);
 
         /**
          * This method makes a copy of the given value and places it
@@ -383,8 +472,16 @@ namespace Json {
          *
          * @param[in] value
          *     This is the value to copy into the object.
+         *
+         * @return
+         *     A reference to the new or updated value in the object at the
+         *     given key is returned.
+         *
+         *     If the JSON value isn't an object,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
          */
-        void Set(
+        Value& Set(
             const std::string& key,
             const Value& value
         );

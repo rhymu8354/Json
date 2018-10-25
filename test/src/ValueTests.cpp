@@ -292,8 +292,12 @@ TEST(ValueTests, NumericIndexNotArray) {
 
 TEST(ValueTests, BuildAndEncodeArray) {
     Json::Value json(Json::Value::Type::Array);
-    json.Add(42);
-    json.Insert("Hello", 0);
+    auto& first = json.Add(43);
+    EXPECT_EQ(43, (int)first);
+    first = 42;
+    auto& newFirst = json.Insert("Hello!", 0);
+    EXPECT_EQ("Hello!", (std::string)newFirst);
+    newFirst = "Hello";
     json.Add(3);
     json.Insert("World", 1);
     ASSERT_EQ("[\"Hello\",\"World\",42,3]", json.ToEncoding());
@@ -305,7 +309,9 @@ TEST(ValueTests, BuildAndEncodeArray) {
 
 TEST(ValueTests, BuildAndEncodeObject) {
     Json::Value json(Json::Value::Type::Object);
-    json.Set("answer", 42);
+    auto& answer = json.Set("answer", 43);
+    EXPECT_EQ(43, (int)answer);
+    answer = 42;
     json.Set("Hello", 0);
     json.Set("Hello", "World");
     json.Set("PogChamp", true);
@@ -458,5 +464,163 @@ TEST(ValueTests, GetKeys) {
             "value",
         }),
         json.GetKeys()
+    );
+}
+
+TEST(ValueTests, ModifyValueInArray) {
+    auto array = Json::Array({1, 2, 3});
+    array[1] = 0;
+    EXPECT_EQ(
+        (Json::Array({1, 0, 3})),
+        array
+    );
+}
+
+TEST(ValueTests, ModifyValueInObject) {
+    auto obj = Json::Object({
+        {"x", 1},
+        {"y", 2},
+        {"z", 3},
+    });
+    obj["y"] = 0;
+    EXPECT_EQ(
+        (Json::Object({
+            {"x", 1},
+            {"y", 0},
+            {"z", 3},
+        })),
+        obj
+    );
+}
+
+TEST(ValueTests, ReferenceValueInArray) {
+    auto array = Json::Array({1, 2, 3});
+    auto* value = &array[1];
+    *value = 0;
+    EXPECT_EQ(
+        (Json::Array({1, 0, 3})),
+        array
+    );
+}
+
+TEST(ValueTests, ReferenceValueInObject) {
+    auto obj = Json::Object({
+        {"x", 1},
+        {"y", 2},
+        {"z", 3},
+    });
+    auto* value = &obj["y"];
+    *value = 0;
+    EXPECT_EQ(
+        (Json::Object({
+            {"x", 1},
+            {"y", 0},
+            {"z", 3},
+        })),
+        obj
+    );
+}
+
+TEST(ValueTests, UndefinedIndexCannotBeModified) {
+    Json::Value json(42);
+    auto& null = json[0];
+    null = 0;
+    EXPECT_EQ(Json::Value::Type::Null, null.GetType());
+}
+
+TEST(ValueTests, UndefinedIndexCannotBeMoved) {
+    Json::Value json(42);
+    auto& null = json[0];
+    Json::Value tryToMoveNullHere(std::move(null));
+    tryToMoveNullHere = 0;
+    EXPECT_EQ(Json::Value::Type::Null, json[0].GetType());
+}
+
+TEST(ValueTests, ConstArrayIndexOutOfRange) {
+    const auto array = Json::Array({1, 2, 3});
+    const auto& value = array[10];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+}
+
+TEST(ValueTests, ConstArrayNegativeIndex) {
+    const auto array = Json::Array({1, 2, 3});
+    const auto& value = array[-1];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+}
+
+TEST(ValueTests, ConstObjectNameNotFound) {
+    const auto obj = Json::Object({
+        {"Hello", "World"},
+    });
+    const auto& value = obj["x"];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+}
+
+TEST(ValueTests, ConstObjectNullName) {
+    const auto obj = Json::Object({
+        {"Hello", "World"},
+    });
+    const auto& value = obj[nullptr];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+}
+
+TEST(ValueTests, MutableArrayIndexOutOfRange) {
+    auto array = Json::Array({1, 2, 3});
+    auto& value = array[5];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+    value = 4;
+    EXPECT_EQ(4, (int)value);
+    EXPECT_EQ(
+        (Json::Array({
+            1, 2, 3, nullptr, nullptr, 4
+        })),
+        array
+    );
+}
+
+TEST(ValueTests, MutableArrayNegativeIndex) {
+    auto array = Json::Array({1, 2, 3});
+    auto& value = array[-1];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+    value = 4;
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+    EXPECT_EQ(
+        (Json::Array({
+            1, 2, 3
+        })),
+        array
+    );
+}
+
+TEST(ValueTests, MutableObjectNameNotFound) {
+    auto obj = Json::Object({
+        {"Hello", "World"},
+    });
+    auto& value = obj["x"];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+    value = 42;
+    EXPECT_EQ(42, (int)value);
+    EXPECT_EQ(
+        (Json::Object({
+            {"Hello", "World"},
+            {"x", 42},
+        })),
+        obj
+    );
+}
+
+TEST(ValueTests, MutableObjectNullName) {
+    auto obj = Json::Object({
+        {"Hello", "World"},
+    });
+    auto& value = obj[nullptr];
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+    value = 42;
+    EXPECT_EQ(Json::Value::Type::Null, value.GetType());
+    EXPECT_EQ(
+        (Json::Object({
+            {"Hello", "World"},
+        })),
+        obj
     );
 }

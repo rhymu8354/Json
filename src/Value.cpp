@@ -22,9 +22,9 @@ namespace {
 
     /**
      * This is returned from indexers when indexed values are
-     * not found.
+     * not found.  Trying to modify it has no effect.
      */
-    const Json::Value null = nullptr;
+    Json::Value null(nullptr);
 
     /**
      * These are the character that are considered "whitespace"
@@ -836,10 +836,28 @@ namespace Json {
     {
         impl_->CopyFrom(other.impl_);
     }
-    Value::Value(Value&&) noexcept = default;
-    Value& Value::operator=(Value&&) noexcept = default;
+    Value::Value(Value&& other) noexcept
+        : impl_(nullptr)
+    {
+        if (&other != &null) {
+            impl_ = std::move(other.impl_);
+        }
+    }
+    Value& Value::operator=(Value&& other) noexcept {
+        if (
+            (this != &other)
+            && (this != &null)
+            && (&other != &null)
+        ) {
+            impl_ = std::move(other.impl_);
+        }
+        return *this;
+    }
     Value& Value::operator=(const Value& other) {
-        if (this != &other) {
+        if (
+            (this != &other)
+            && (this != &null)
+        ) {
             impl_.reset(new Impl());
             impl_->CopyFrom(other.impl_);
         }
@@ -1025,22 +1043,64 @@ namespace Json {
     }
 
     const Value& Value::operator[](const char* key) const {
+        if (key == nullptr) {
+            return null;
+        }
         return (*this)[std::string(key)];
     }
 
-    void Value::Add(const Value& value) {
-        if (impl_->type != Type::Array) {
-            return;
+    Value& Value::operator[](size_t index) {
+        if (impl_->type == Type::Array) {
+            if (index >= impl_->arrayValue->size()) {
+                impl_->arrayValue->resize(index + 1, nullptr);
+            }
+            return (*impl_->arrayValue)[index];
+        } else {
+            return null;
         }
-        Insert(value, impl_->arrayValue->size());
-        impl_->encoding.clear();
     }
 
-    void Value::Insert(const Value& value, size_t index) {
-        if (impl_->type != Type::Array) {
-            return;
+    Value& Value::operator[](int index) {
+        if (index < 0) {
+            return null;
         }
-        (void)impl_->arrayValue->insert(
+        return (*this)[(size_t)index];
+    }
+
+    Value& Value::operator[](const std::string& key) {
+        if (impl_->type == Type::Object) {
+            const auto entry = impl_->objectValue->find(key);
+            if (entry == impl_->objectValue->end()) {
+                return Set(key, nullptr);
+            } else {
+                return entry->second;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    Value& Value::operator[](const char* key) {
+        if (key == nullptr) {
+            return null;
+        }
+        return (*this)[std::string(key)];
+    }
+
+    Value& Value::Add(const Value& value) {
+        if (impl_->type != Type::Array) {
+            return null;
+        }
+        auto& inserted = Insert(value, impl_->arrayValue->size());
+        impl_->encoding.clear();
+        return inserted;
+    }
+
+    Value& Value::Insert(const Value& value, size_t index) {
+        if (impl_->type != Type::Array) {
+            return null;
+        }
+        auto inserted = impl_->arrayValue->insert(
             impl_->arrayValue->begin() + std::min(
                 index,
                 impl_->arrayValue->size()
@@ -1048,17 +1108,20 @@ namespace Json {
             value
         );
         impl_->encoding.clear();
+        return *inserted;
     }
 
-    void Value::Set(
+    Value& Value::Set(
         const std::string& key,
         const Value& value
     ) {
         if (impl_->type != Type::Object) {
-            return;
+            return null;
         }
-        (*impl_->objectValue)[key] = value;
+        auto& ref = (*impl_->objectValue)[key];
+        ref = value;
         impl_->encoding.clear();
+        return ref;
     }
 
     void Value::Remove(size_t index) {
