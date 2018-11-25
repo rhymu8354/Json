@@ -1444,7 +1444,10 @@ namespace Json {
         const Value& json,
         std::ostream* os
     ) {
-        *os << json.ToEncoding();
+        EncodingOptions options;
+        options.pretty = true;
+        options.numIndentationLevels = 1;
+        *os << json.ToEncoding(options);
     }
 
 }
