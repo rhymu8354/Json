@@ -905,6 +905,13 @@ namespace Json {
         impl_->integerValue = value;
     }
 
+    Value::Value(size_t value)
+        : impl_(new Impl)
+    {
+        impl_->type = Type::Integer;
+        impl_->integerValue = (int)value;
+    }
+
     Value::Value(double value)
         : impl_(new Impl)
     {
@@ -965,6 +972,20 @@ namespace Json {
     Value::operator int() const {
         if (impl_->type == Type::Integer) {
             return impl_->integerValue;
+        } else if (impl_->type == Type::FloatingPoint) {
+            return (int)impl_->floatingPointValue;
+        } else {
+            return 0;
+        }
+    }
+
+    Value::operator size_t() const {
+        if (impl_->type == Type::Integer) {
+            if (impl_->integerValue >= 0) {
+                return (size_t)impl_->integerValue;
+            } else {
+                return 0;
+            }
         } else if (impl_->type == Type::FloatingPoint) {
             return (int)impl_->floatingPointValue;
         } else {
