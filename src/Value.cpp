@@ -934,9 +934,9 @@ namespace Json {
     }
 
     bool Value::operator==(const Value& other) const {
-        if (impl_->type != other.impl_->type) {
+        if (GetType() != other.GetType()) {
             return false;
-        } else switch (impl_->type) {
+        } else switch (GetType()) {
             case Type::Invalid: return true;
             case Type::Null: return true;
             case Type::Boolean: return impl_->booleanValue == other.impl_->booleanValue;
@@ -954,7 +954,7 @@ namespace Json {
     }
 
     Value::operator bool() const {
-        if (impl_->type == Type::Boolean) {
+        if (GetType() == Type::Boolean) {
             return impl_->booleanValue;
         } else {
             return false;
@@ -962,7 +962,7 @@ namespace Json {
     }
 
     Value::operator std::string() const {
-        if (impl_->type == Type::String) {
+        if (GetType() == Type::String) {
             return *impl_->stringValue;
         } else {
             return "";
@@ -970,9 +970,9 @@ namespace Json {
     }
 
     Value::operator int() const {
-        if (impl_->type == Type::Integer) {
+        if (GetType() == Type::Integer) {
             return impl_->integerValue;
-        } else if (impl_->type == Type::FloatingPoint) {
+        } else if (GetType() == Type::FloatingPoint) {
             return (int)impl_->floatingPointValue;
         } else {
             return 0;
@@ -980,13 +980,13 @@ namespace Json {
     }
 
     Value::operator size_t() const {
-        if (impl_->type == Type::Integer) {
+        if (GetType() == Type::Integer) {
             if (impl_->integerValue >= 0) {
                 return (size_t)impl_->integerValue;
             } else {
                 return 0;
             }
-        } else if (impl_->type == Type::FloatingPoint) {
+        } else if (GetType() == Type::FloatingPoint) {
             return (int)impl_->floatingPointValue;
         } else {
             return 0;
@@ -994,9 +994,9 @@ namespace Json {
     }
 
     Value::operator double() const {
-        if (impl_->type == Type::Integer) {
+        if (GetType() == Type::Integer) {
             return (double)impl_->integerValue;
-        } else if (impl_->type == Type::FloatingPoint) {
+        } else if (GetType() == Type::FloatingPoint) {
             return impl_->floatingPointValue;
         } else {
             return 0.0;
@@ -1004,13 +1004,16 @@ namespace Json {
     }
 
     auto Value::GetType() const -> Type {
+        if (impl_ == nullptr) {
+            return Type::Invalid;
+        }
         return impl_->type;
     }
 
     size_t Value::GetSize() const {
-        if (impl_->type == Type::Array) {
+        if (GetType() == Type::Array) {
             return impl_->arrayValue->size();
-        } else if (impl_->type == Type::Object) {
+        } else if (GetType() == Type::Object) {
             return impl_->objectValue->size();
         } else {
             return 0;
@@ -1018,7 +1021,7 @@ namespace Json {
     }
 
     bool Value::Has(const std::string& key) const {
-        if (impl_->type == Type::Object) {
+        if (GetType() == Type::Object) {
             return (impl_->objectValue->find(key) != impl_->objectValue->end());
         } else {
             return false;
@@ -1027,7 +1030,7 @@ namespace Json {
 
     std::vector< std::string > Value::GetKeys() const {
         std::vector< std::string > keys;
-        if (impl_->type == Type::Object) {
+        if (GetType() == Type::Object) {
             keys.reserve(impl_->objectValue->size());
             for (const auto& entry: *impl_->objectValue) {
                 keys.push_back(entry.first);
@@ -1037,7 +1040,7 @@ namespace Json {
     }
 
     const Value& Value::operator[](size_t index) const {
-        if (impl_->type == Type::Array) {
+        if (GetType() == Type::Array) {
             if (index >= impl_->arrayValue->size()) {
                 return null;
             }
@@ -1052,7 +1055,7 @@ namespace Json {
     }
 
     const Value& Value::operator[](const std::string& key) const {
-        if (impl_->type == Type::Object) {
+        if (GetType() == Type::Object) {
             const auto entry = impl_->objectValue->find(key);
             if (entry == impl_->objectValue->end()) {
                 return null;
@@ -1071,7 +1074,7 @@ namespace Json {
     }
 
     Value& Value::operator[](size_t index) {
-        if (impl_->type == Type::Array) {
+        if (GetType() == Type::Array) {
             if (index >= impl_->arrayValue->size()) {
                 impl_->arrayValue->resize(index + 1, nullptr);
             }
@@ -1089,7 +1092,7 @@ namespace Json {
     }
 
     Value& Value::operator[](const std::string& key) {
-        if (impl_->type == Type::Object) {
+        if (GetType() == Type::Object) {
             const auto entry = impl_->objectValue->find(key);
             if (entry == impl_->objectValue->end()) {
                 return Set(key, nullptr);
@@ -1109,7 +1112,7 @@ namespace Json {
     }
 
     Value& Value::Add(const Value& value) {
-        if (impl_->type != Type::Array) {
+        if (GetType() != Type::Array) {
             return null;
         }
         auto& inserted = Insert(value, impl_->arrayValue->size());
@@ -1117,8 +1120,20 @@ namespace Json {
         return inserted;
     }
 
+    Value& Value::Add(Value&& value) {
+        if (this == &value) {
+            return Add(value);
+        }
+        if (GetType() != Type::Array) {
+            return null;
+        }
+        auto& inserted = Insert(std::move(value), impl_->arrayValue->size());
+        impl_->encoding.clear();
+        return inserted;
+    }
+
     Value& Value::Insert(const Value& value, size_t index) {
-        if (impl_->type != Type::Array) {
+        if (GetType() != Type::Array) {
             return null;
         }
         auto inserted = impl_->arrayValue->insert(
@@ -1132,11 +1147,26 @@ namespace Json {
         return *inserted;
     }
 
+    Value& Value::Insert(Value&& value, size_t index) {
+        if (GetType() != Type::Array) {
+            return null;
+        }
+        auto inserted = impl_->arrayValue->insert(
+            impl_->arrayValue->begin() + std::min(
+                index,
+                impl_->arrayValue->size()
+            ),
+            std::move(value)
+        );
+        impl_->encoding.clear();
+        return *inserted;
+    }
+
     Value& Value::Set(
         const std::string& key,
         const Value& value
     ) {
-        if (impl_->type != Type::Object) {
+        if (GetType() != Type::Object) {
             return null;
         }
         auto& ref = (*impl_->objectValue)[key];
@@ -1146,7 +1176,7 @@ namespace Json {
     }
 
     void Value::Remove(size_t index) {
-        if (impl_->type != Type::Array) {
+        if (GetType() != Type::Array) {
             return;
         }
         if (index < impl_->arrayValue->size()) {
@@ -1158,7 +1188,7 @@ namespace Json {
     }
 
     void Value::Remove(const std::string& key) {
-        if (impl_->type != Type::Object) {
+        if (GetType() != Type::Object) {
             return;
         }
         (void)impl_->objectValue->erase(key);
@@ -1166,7 +1196,7 @@ namespace Json {
     }
 
     std::string Value::ToEncoding(const EncodingOptions& options) const {
-        if (impl_->type == Type::Invalid) {
+        if (GetType() == Type::Invalid) {
             return SystemAbstractions::sprintf(
                 "(Invalid JSON: %s)",
                 impl_->encoding.c_str()
@@ -1176,7 +1206,7 @@ namespace Json {
             impl_->encoding.clear();
         }
         if (impl_->encoding.empty()) {
-            switch (impl_->type) {
+            switch (GetType()) {
                 case Type::Null: {
                     impl_->encoding = "null";
                 } break;

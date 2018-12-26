@@ -353,7 +353,14 @@ TEST(ValueTests, CompareObjects) {
     EXPECT_NE(json5, json4);
 }
 
-TEST(ValueTests, AddObjectToItself) {
+TEST(ValueTests, AddObjectToItselfCopy) {
+    Json::Value json(Json::Value::Type::Array);
+    json.Add(42);
+    json.Add(json);
+    EXPECT_EQ("[42,[42]]", json.ToEncoding());
+}
+
+TEST(ValueTests, AddObjectToItselfMove) {
     Json::Value json(Json::Value::Type::Array);
     json.Add(42);
     json.Add(std::move(json));
@@ -633,4 +640,55 @@ TEST(ValueTests, MutableObjectNullName) {
         })),
         obj
     );
+}
+
+TEST(ValueTests, MovedValueBecomesInvalid) {
+    auto obj = Json::Value(42);
+    auto newLocation = std::move(obj);
+    EXPECT_EQ(Json::Value(42), newLocation);
+    EXPECT_EQ(Json::Value::Type::Invalid, obj.GetType());
+}
+
+TEST(ValueTests, MoveInsert) {
+    auto element = Json::Array({
+        1, 1, 2, 3, 5, 8, 13
+    });
+    const auto elementCopy = element;
+    auto array = Json::Array({42, "abc"});
+    const auto& movedElement = array.Insert(std::move(element), 1);
+    EXPECT_EQ(
+        Json::Array({
+            42,
+            elementCopy,
+            "abc",
+        }),
+        array
+    );
+    EXPECT_EQ(
+        Json::Value::Type::Invalid,
+        element.GetType()
+    );
+    EXPECT_EQ(elementCopy, movedElement);
+}
+
+TEST(ValueTests, MoveAdd) {
+    auto element = Json::Array({
+        1, 1, 2, 3, 5, 8, 13
+    });
+    const auto elementCopy = element;
+    auto array = Json::Array({42, "abc"});
+    const auto& movedElement = array.Add(std::move(element));
+    EXPECT_EQ(
+        Json::Array({
+            42,
+            "abc",
+            elementCopy,
+        }),
+        array
+    );
+    EXPECT_EQ(
+        Json::Value::Type::Invalid,
+        element.GetType()
+    );
+    EXPECT_EQ(elementCopy, movedElement);
 }

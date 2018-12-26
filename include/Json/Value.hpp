@@ -463,6 +463,25 @@ namespace Json {
         Value& Add(const Value& value);
 
         /**
+         * This method moves the given value to the end of the array, if the
+         * JSON value is an array.
+         *
+         * @note
+         *     If the given value is the array itself, a copy of it will be
+         *     added, rather than moving the value into itself.
+         *
+         * @param[in] value
+         *     This is the value to move to the end of the array.
+         *
+         * @return
+         *     A reference to the new value in the array is returned.
+         *
+         *     If the JSON value isn't an array, a reference to a special
+         *     unmodifyable "null" JSON value is returned.
+         */
+        Value& Add(Value&& value);
+
+        /**
          * This method makes a copy of the given value and places it at
          * the given index of the array, if the JSON value is an array.
          * Any values previously at or after this index are moved forward
@@ -482,6 +501,26 @@ namespace Json {
          *     returned.
          */
         Value& Insert(const Value& value, size_t index);
+
+        /**
+         * This method moves the given value to be at the given index of the
+         * array, if the JSON value is an array.  Any values previously at or
+         * after this index are moved forward one position.
+         *
+         * @param[in] value
+         *     This is the value to move into the array.
+         *
+         * @param[in] index
+         *     This is the position into which to move the given value.
+         *
+         * @return
+         *     A reference to the new value in the array is returned.
+         *
+         *     If the JSON value isn't an array,
+         *     a reference to a special unmodifyable "null" JSON value is
+         *     returned.
+         */
+        Value& Insert(Value&& value, size_t index);
 
         /**
          * This method makes a copy of the given value and places it
