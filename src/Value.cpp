@@ -942,7 +942,12 @@ namespace Json {
             case Type::Boolean: return impl_->booleanValue == other.impl_->booleanValue;
             case Type::String: return *impl_->stringValue == *other.impl_->stringValue;
             case Type::Integer: return impl_->integerValue == other.impl_->integerValue;
-            case Type::FloatingPoint: return impl_->floatingPointValue == other.impl_->floatingPointValue;
+            case Type::FloatingPoint: {
+                return (
+                    fabs(impl_->floatingPointValue - other.impl_->floatingPointValue)
+                    < std::numeric_limits< double >::epsilon()
+                );
+            }
             case Type::Array: return CompareJsonArrays(*impl_->arrayValue, *other.impl_->arrayValue);
             case Type::Object: return CompareJsonObjects(*impl_->objectValue, *other.impl_->objectValue);
             default: return true;

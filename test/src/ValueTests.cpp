@@ -692,3 +692,9 @@ TEST(ValueTests, MoveAdd) {
     );
     EXPECT_EQ(elementCopy, movedElement);
 }
+
+TEST(ValueTests, FloatingPointComparisonWorksDespiteRoundingError) {
+    const auto value = Json::Value(0.15);
+    const auto encoding = value.ToEncoding();
+    EXPECT_EQ(value, Json::Value::FromEncoding(encoding));
+}
