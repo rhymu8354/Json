@@ -698,3 +698,15 @@ TEST(ValueTests, FloatingPointComparisonWorksDespiteRoundingError) {
     const auto encoding = value.ToEncoding();
     EXPECT_EQ(value, Json::Value::FromEncoding(encoding));
 }
+
+TEST(ValueTests, DecodeObjectWithStringValueContainingEscapedDelimiter) {
+    const std::string testString = "These need to be escaped: \", \\, \b, \f, \n, \r, \t";
+    const auto testObject = Json::Object({
+        {"foo", testString},
+    });
+    const auto testEncoding = testObject.ToEncoding();
+    EXPECT_EQ(
+        testObject,
+        Json::Value::FromEncoding(testEncoding)
+    );
+}

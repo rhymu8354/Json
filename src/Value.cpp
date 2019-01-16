@@ -742,17 +742,25 @@ namespace Json {
                 return {};
             }
             bool insideString = false;
+            bool escaping = false;
             for (const auto cp: encodingCodePoints) {
                 encodedValueCodePoints.push_back(cp);
                 if (
-                    !expectedDelimiters.empty()
+                    !escaping
+                    && !expectedDelimiters.empty()
                     && (cp == expectedDelimiters.top())
                 ) {
                     insideString = false;
                     expectedDelimiters.pop();
                     continue;
                 }
-                if (!insideString) {
+                if (insideString) {
+                    if (escaping) {
+                        escaping = false;
+                    } else if (cp == (Utf8::UnicodeCodePoint)'\\') {
+                        escaping = true;
+                    }
+                } else {
                     if (cp == (Utf8::UnicodeCodePoint)'\"') {
                         insideString = true;
                         expectedDelimiters.push('\"');
