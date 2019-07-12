@@ -1474,6 +1474,10 @@ namespace Json {
                 *os << "Invalid";
             } break;
 
+            case Value::Type::Null: {
+                *os << "Null";
+            } break;
+
             case Value::Type::Boolean: {
                 *os << "Boolean";
             } break;
