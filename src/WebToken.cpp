@@ -105,14 +105,6 @@ namespace Json {
         );
     }
 
-    bool WebToken::operator==(const WebToken& other) const {
-        return false;
-    }
-
-    bool WebToken::operator!=(const WebToken& other) const {
-        return !(*this == other);
-    }
-
     std::vector< uint8_t > WebToken::GetData() const {
         return impl_->data;
     }

@@ -41,30 +41,6 @@ namespace Json {
         explicit WebToken(const std::string& encoding);
 
         /**
-         * This is the equality comparison operator.
-         *
-         * @param[in] other
-         *     This is the other JWT to which to compare this one.
-         *
-         * @return
-         *     An indication of whether or not the two JWTs are equal
-         *     is returned.
-         */
-        bool operator==(const WebToken& other) const;
-
-        /**
-         * This is the inequality comparison operator.
-         *
-         * @param[in] other
-         *     This is the other JWT to which to compare this one.
-         *
-         * @return
-         *     An indication of whether or not the two JWTs are
-         *     not equal is returned.
-         */
-        bool operator!=(const WebToken& other) const;
-
-        /**
          * Return the content of the JWT that is used to generate
          * or verify the JWT's signature.
          *
