@@ -129,11 +129,4 @@ namespace Json {
         return impl_->signature;
     }
 
-    void PrintTo(
-        const WebToken& json,
-        std::ostream* os
-    ) {
-        *os << "JWT()";
-    }
-
 }

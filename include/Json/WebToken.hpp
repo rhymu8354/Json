@@ -113,20 +113,4 @@ namespace Json {
         std::unique_ptr< Impl > impl_;
     };
 
-    /**
-     * This is a support function for Google Test to print out
-     * a JWT.
-     *
-     * @param[in] json
-     *     This is the JWT to print.
-     *
-     * @param[in] os
-     *     This points to the stream to which to print the
-     *     JWT.
-     */
-    void PrintTo(
-        const WebToken& json,
-        std::ostream* os
-    );
-
 }
