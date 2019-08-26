@@ -16,6 +16,12 @@ namespace Json {
      */
     struct WebToken::Impl {
         /**
+         * This is the content of the JWT that is used to generate
+         * or verify the JWT's signature.
+         */
+        std::string data;
+
+        /**
          * This is the first part of the JWT, which describes what it is
          * and how it's signed (if it's signed).
          */
@@ -68,9 +74,10 @@ namespace Json {
             impl_->header = encoding;
             return;
         }
+        const auto encodedHeader = encoding.substr(0, delimiter);
         impl_->header = Json::Value::FromEncoding(
             Base64::UrlDecode(
-                encoding.substr(0, delimiter)
+                encodedHeader
             )
         );
         auto remainder = encoding.substr(delimiter + 1);
@@ -79,11 +86,13 @@ namespace Json {
             impl_->payload = remainder;
             return;
         }
+        const auto encodedPayload = remainder.substr(0, delimiter);
         impl_->payload = Json::Value::FromEncoding(
             Base64::UrlDecode(
-                remainder.substr(0, delimiter)
+                encodedPayload
             )
         );
+        impl_->data = encodedHeader + "." + encodedPayload;
         remainder = remainder.substr(delimiter + 1);
         const auto signatureAsString = Base64::UrlDecode(remainder);
         impl_->signature.assign(
@@ -98,6 +107,10 @@ namespace Json {
 
     bool WebToken::operator!=(const WebToken& other) const {
         return !(*this == other);
+    }
+
+    std::string WebToken::GetData() const {
+        return impl_->data;
     }
 
     Value WebToken::GetHeader() const {

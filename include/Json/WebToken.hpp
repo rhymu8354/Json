@@ -64,6 +64,16 @@ namespace Json {
         bool operator!=(const WebToken& other) const;
 
         /**
+         * Return the content of the JWT that is used to generate
+         * or verify the JWT's signature.
+         *
+         * @return
+         *     The content of the JWT that is used to generate
+         *     or verify the JWT's signature is returned.
+         */
+        std::string GetData() const;
+
+        /**
          * Return the header of the JWT.
          *
          * @return
