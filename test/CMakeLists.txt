@@ -7,6 +7,7 @@ set(This JsonTests)
 
 set(Sources
     src/ValueTests.cpp
+    src/WebTokenTests.cpp
 )
 
 add_executable(${This} ${Sources})

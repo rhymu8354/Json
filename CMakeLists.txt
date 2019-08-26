@@ -7,10 +7,12 @@ set(This Json)
 
 set(Headers
     include/Json/Value.hpp
+    include/Json/WebToken.hpp
 )
 
 set(Sources
     src/Value.cpp
+    src/WebToken.cpp
 )
 
 add_library(${This} STATIC ${Sources} ${Headers})
@@ -21,6 +23,7 @@ set_target_properties(${This} PROPERTIES
 target_include_directories(${This} PUBLIC include)
 
 target_link_libraries(${This} PUBLIC
+    Base64
     SystemAbstractions
     Utf8
 )
