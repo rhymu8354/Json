@@ -8,6 +8,9 @@
 
 #include <Base64/Base64.hpp>
 #include <Json/WebToken.hpp>
+#include <stdint.h>
+#include <string>
+#include <vector>
 
 namespace Json {
 
@@ -19,7 +22,7 @@ namespace Json {
          * This is the content of the JWT that is used to generate
          * or verify the JWT's signature.
          */
-        std::string data;
+        std::vector< uint8_t > data;
 
         /**
          * This is the first part of the JWT, which describes what it is
@@ -92,7 +95,8 @@ namespace Json {
                 encodedPayload
             )
         );
-        impl_->data = encodedHeader + "." + encodedPayload;
+        const auto dataAsString = encodedHeader + "." + encodedPayload;
+        impl_->data.assign(dataAsString.begin(), dataAsString.end());
         remainder = remainder.substr(delimiter + 1);
         const auto signatureAsString = Base64::UrlDecode(remainder);
         impl_->signature.assign(
@@ -109,7 +113,7 @@ namespace Json {
         return !(*this == other);
     }
 
-    std::string WebToken::GetData() const {
+    std::vector< uint8_t > WebToken::GetData() const {
         return impl_->data;
     }
 

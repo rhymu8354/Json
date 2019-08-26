@@ -10,23 +10,20 @@
 #include <gtest/gtest.h>
 #include <Json/Value.hpp>
 #include <Json/WebToken.hpp>
+#include <stdint.h>
+#include <vector>
 
 TEST(WebTokenTests, Decode) {
-    Json::WebToken jwt(
-        "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEifQ"
-        "."
-        "eyJhdWQiOiI0YnRuYWVhaXN0NnVqNHpxaGl0b29rZml5YjE1Nm8iLCJleHAiOjE1NjY3NTYxMjcsImlhdCI6MTU2Njc1NTIyNywiaXNzIjoiaHR0cHM6Ly9pZC50d2l0Y2gudHYvb2F1dGgyIiwic3ViIjoiNjI5NjY0NzciLCJhenAiOiI0YnRuYWVhaXN0NnVqNHpxaGl0b29rZml5YjE1Nm8iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJyaHltdTgzNTQifQ"
-        "."
-        "vsBFHzgnkc3aT1U7MQYGOvtGS4odVX3IBXHFzc8QqKGYbCWq38dWc8V6DKBBm_Uzfx-8ulxEAWye_D9VNDDoBFhLziz0TSyuKFID61TPG3Zfig2ApeIiZgREsoVKKHdwukmLkFhye4ZQOQkQuN8CBxklFoEKRzn-y5xY1HFfB0rgp5ms8rYzrxEdgR9MorRh8fMaal2bXsEozatHl4WoPoqEsls09Jfhpe1mmsR9yontTFazVx24h8I2BT3Yq_Q6YluXFGiNwUK1TYV7q0Xw59EXyKIovUSatD5tMz4irIdvhpyC5P7ce5k7a0luUqRdyWAOhwEsUc5T38XtAZijuBHv0wD7Hsc-gDsPfFG1z7FgfepfloAAhPkr708T1TOMNgtelJVAXkVJES4gH2eAeYX2mYi1l9mKCBANnt0yq3o9aE4KqXiDlEJhkuGpHIvw4bFq8Qu8jCJsyp1pCTMSrLu37-Ahi5ZeYbSxT-I7Zu5atKZf5MhbNOVK5u9z_O1yz3fsuDkwRJRQM2xyWHxDiHHkot0g-dsNZl41PvDTpKF83ZMjH_EiQ8Q-3DJRdZZ7-TM5Y07-JfQSpTwMlcdXAXiXrzjVGSN3pZCGCY-9OWFUP72320ebBRi2sJJkAmRxQLojJnugCUEWZS4yB78Ck6Kl8234FzRx1x4CsPFYxow"
+    const std::string header = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEifQ";
+    const std::string payload = "eyJhdWQiOiI0YnRuYWVhaXN0NnVqNHpxaGl0b29rZml5YjE1Nm8iLCJleHAiOjE1NjY3NTYxMjcsImlhdCI6MTU2Njc1NTIyNywiaXNzIjoiaHR0cHM6Ly9pZC50d2l0Y2gudHYvb2F1dGgyIiwic3ViIjoiNjI5NjY0NzciLCJhenAiOiI0YnRuYWVhaXN0NnVqNHpxaGl0b29rZml5YjE1Nm8iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJyaHltdTgzNTQifQ";
+    const std::string signature = "vsBFHzgnkc3aT1U7MQYGOvtGS4odVX3IBXHFzc8QqKGYbCWq38dWc8V6DKBBm_Uzfx-8ulxEAWye_D9VNDDoBFhLziz0TSyuKFID61TPG3Zfig2ApeIiZgREsoVKKHdwukmLkFhye4ZQOQkQuN8CBxklFoEKRzn-y5xY1HFfB0rgp5ms8rYzrxEdgR9MorRh8fMaal2bXsEozatHl4WoPoqEsls09Jfhpe1mmsR9yontTFazVx24h8I2BT3Yq_Q6YluXFGiNwUK1TYV7q0Xw59EXyKIovUSatD5tMz4irIdvhpyC5P7ce5k7a0luUqRdyWAOhwEsUc5T38XtAZijuBHv0wD7Hsc-gDsPfFG1z7FgfepfloAAhPkr708T1TOMNgtelJVAXkVJES4gH2eAeYX2mYi1l9mKCBANnt0yq3o9aE4KqXiDlEJhkuGpHIvw4bFq8Qu8jCJsyp1pCTMSrLu37-Ahi5ZeYbSxT-I7Zu5atKZf5MhbNOVK5u9z_O1yz3fsuDkwRJRQM2xyWHxDiHHkot0g-dsNZl41PvDTpKF83ZMjH_EiQ8Q-3DJRdZZ7-TM5Y07-JfQSpTwMlcdXAXiXrzjVGSN3pZCGCY-9OWFUP72320ebBRi2sJJkAmRxQLojJnugCUEWZS4yB78Ck6Kl8234FzRx1x4CsPFYxow";
+    Json::WebToken jwt(header + "." + payload + "." + signature);
+    const std::string dataAsString = header + "." + payload;
+    const std::vector< uint8_t > data(
+        dataAsString.begin(),
+        dataAsString.end()
     );
-    EXPECT_EQ(
-        (
-            "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjEifQ"
-            "."
-            "eyJhdWQiOiI0YnRuYWVhaXN0NnVqNHpxaGl0b29rZml5YjE1Nm8iLCJleHAiOjE1NjY3NTYxMjcsImlhdCI6MTU2Njc1NTIyNywiaXNzIjoiaHR0cHM6Ly9pZC50d2l0Y2gudHYvb2F1dGgyIiwic3ViIjoiNjI5NjY0NzciLCJhenAiOiI0YnRuYWVhaXN0NnVqNHpxaGl0b29rZml5YjE1Nm8iLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJyaHltdTgzNTQifQ"
-        ),
-        jwt.GetData()
-    );
+    EXPECT_EQ(data, jwt.GetData());
     EXPECT_EQ(
         Json::Object({
             {"alg", "RS256"},

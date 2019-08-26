@@ -11,6 +11,7 @@
 #include <Json/Value.hpp>
 #include <memory>
 #include <ostream>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -71,7 +72,7 @@ namespace Json {
          *     The content of the JWT that is used to generate
          *     or verify the JWT's signature is returned.
          */
-        std::string GetData() const;
+        std::vector< uint8_t > GetData() const;
 
         /**
          * Return the header of the JWT.
