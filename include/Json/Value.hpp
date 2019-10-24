@@ -193,6 +193,19 @@ namespace Json {
         bool operator!=(const Value& other) const;
 
         /**
+         * Determine whether or not the JSON value comes before another
+         * JSON value.
+         *
+         * @param[in] other
+         *     This is the other JSON value to which to compare this one.
+         *
+         * @return
+         *     An indication of whether or not the JSON value comes before
+         *     the other JSON value is returned.
+         */
+        bool operator<(const Value& other) const;
+
+        /**
          * This is the typecast to bool operator for the class.
          *
          * @return

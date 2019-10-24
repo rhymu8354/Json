@@ -966,6 +966,18 @@ namespace Json {
         return !(*this == other);
     }
 
+    bool Value::operator<(const Value& other) const {
+        if (GetType() != other.GetType()) {
+            return (int)GetType() < (int)other.GetType();
+        } else switch (GetType()) {
+            case Type::Boolean: return impl_->booleanValue < other.impl_->booleanValue;
+            case Type::String: return *impl_->stringValue < *other.impl_->stringValue;
+            case Type::Integer: return impl_->integerValue < other.impl_->integerValue;
+            case Type::FloatingPoint: return impl_->floatingPointValue < other.impl_->floatingPointValue;
+            default: return false;
+        }
+    }
+
     Value::operator bool() const {
         if (GetType() == Type::Boolean) {
             return impl_->booleanValue;
