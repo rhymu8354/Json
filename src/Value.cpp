@@ -14,7 +14,7 @@
 #include <set>
 #include <stack>
 #include <string>
-#include <SystemAbstractions/StringExtensions.hpp>
+#include <StringExtensions/StringExtensions.hpp>
 #include <Utf8/Utf8.hpp>
 #include <vector>
 
@@ -516,10 +516,10 @@ namespace Json {
             const auto s = encoder.Encode(codePoints);
             intmax_t value;
             if (
-                SystemAbstractions::ToInteger(
+                StringExtensions::ToInteger(
                     std::string(s.begin(), s.end()),
                     value
-                ) != SystemAbstractions::ToIntegerResult::Success
+                ) != StringExtensions::ToIntegerResult::Success
             ) {
                 return;
             }
@@ -1222,7 +1222,7 @@ namespace Json {
 
     std::string Value::ToEncoding(const EncodingOptions& options) const {
         if (GetType() == Type::Invalid) {
-            return SystemAbstractions::sprintf(
+            return StringExtensions::sprintf(
                 "(Invalid JSON: %s)",
                 impl_->encoding.c_str()
             );
@@ -1249,11 +1249,11 @@ namespace Json {
                 } break;
 
                 case Type::Integer: {
-                    impl_->encoding = SystemAbstractions::sprintf("%i", impl_->integerValue);
+                    impl_->encoding = StringExtensions::sprintf("%i", impl_->integerValue);
                 } break;
 
                 case Type::FloatingPoint: {
-                    impl_->encoding = SystemAbstractions::sprintf("%.15lg", impl_->floatingPointValue);
+                    impl_->encoding = StringExtensions::sprintf("%.15lg", impl_->floatingPointValue);
                     if (impl_->encoding.find_first_not_of("0123456789-") == std::string::npos) {
                         impl_->encoding += ".0";
                     }
