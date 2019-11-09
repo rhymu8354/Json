@@ -26,9 +26,6 @@ There are two distinct steps in the build process:
 
 ### Prerequisites
 
-* [Base64](https://github.com/rhymu8354/Base64.git) - a library which
-  implements encoding and decoding data using the Base64 algorithm, which
-  is defined in [RFC 4648](https://tools.ietf.org/html/rfc4648).
 * [CMake](https://cmake.org/) version 3.8 or newer
 * C++11 toolchain compatible with CMake for your development platform (e.g. [Visual Studio](https://www.visualstudio.com/) on Windows)
 * [SystemAbstractions](https://github.com/rhymu8354/SystemAbstractions.git) - a
