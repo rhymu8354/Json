@@ -194,11 +194,18 @@ TEST(ValueTests, SurrogatePairEncoding) {
     ASSERT_EQ("\"This should be encoded as a UTF-16 surrogate pair: \\uD83D\\uDCA9\"", json.ToEncoding(options));
 }
 
-TEST(ValueTests, SurrogatePairDecoding) {
+TEST(ValueTests, ValidSurrogatePairDecoding) {
     std::string encoding("\"This should be encoded as a UTF-16 surrogate pair: \\uD84C\\uDFB4\"");
     ASSERT_EQ("This should be encoded as a UTF-16 surrogate pair: 𣎴", (std::string)Json::Value::FromEncoding(encoding));
     encoding = "\"This should be encoded as a UTF-16 surrogate pair: \\uD83D\\uDCA9\"";
     ASSERT_EQ("This should be encoded as a UTF-16 surrogate pair: 💩", (std::string)Json::Value::FromEncoding(encoding));
+}
+
+TEST(ValueTests, IncompleteSurrogatePairDecoding) {
+    auto json = Json::Value::FromEncoding("\"This is bad: \\ud834\"");
+    ASSERT_EQ("(Invalid JSON: \"This is bad: \\ud834\")", json.ToEncoding());
+    json = Json::Value::FromEncoding("\"This is also bad: \\ud834 yo!\"");
+    ASSERT_EQ("(Invalid JSON: \"This is also bad: \\ud834 yo!\")", json.ToEncoding());
 }
 
 TEST(ValueTests, EncodingOfInvalidJson) {

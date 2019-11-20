@@ -314,6 +314,7 @@ namespace {
                 (state < 2)
                 || (state > 5)
             )
+            && (firstHalfOfSurrogatePair == 0)
         );
     }
 
