@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 #include <Json/Value.hpp>
+#include <locale.h>
 
 TEST(ValueTests, FromNull) {
     Json::Value json(nullptr);
@@ -159,6 +160,14 @@ TEST(ValueTests, FromFloatingPoint) {
     EXPECT_EQ("60412.769", json.ToEncoding());
     json = Json::Value(604124.769);
     EXPECT_EQ("604124.769", json.ToEncoding());
+}
+
+TEST(ValueTests, FromFloatingPoint_Danish_Locale) {
+    const auto originalLocale = (std::string)setlocale(LC_ALL, NULL);
+    (void)setlocale(LC_ALL, "de_DE");
+    Json::Value json(3.14159);
+    EXPECT_EQ("3.14159", json.ToEncoding());
+    (void)setlocale(LC_ALL, originalLocale.c_str());
 }
 
 TEST(ValueTests, ToFloatingPoint) {
