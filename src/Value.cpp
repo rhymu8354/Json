@@ -3,10 +3,11 @@
  *
  * This module contains the implementation of the Json::Value class.
  *
- * © 2018 by Richard Walters
+ * © 2018-2019 by Richard Walters
  */
 
 #include <algorithm>
+#include <inttypes.h>
 #include <Json/Value.hpp>
 #include <limits>
 #include <map>
@@ -420,7 +421,7 @@ namespace Json {
             std::string* stringValue;
             std::vector< Value >* arrayValue;
             std::map< std::string, Value >* objectValue;
-            int integerValue;
+            intmax_t integerValue;
             double floatingPointValue;
         };
 
@@ -515,23 +516,15 @@ namespace Json {
         void DecodeAsInteger(const std::vector< Utf8::UnicodeCodePoint >& codePoints) {
             Utf8::Utf8 encoder;
             const auto s = encoder.Encode(codePoints);
-            intmax_t value;
             if (
                 StringExtensions::ToInteger(
                     std::string(s.begin(), s.end()),
-                    value
+                    integerValue
                 ) != StringExtensions::ToIntegerResult::Success
             ) {
                 return;
             }
-            if (
-                (value < (decltype(value))std::numeric_limits< decltype(integerValue) >::lowest())
-                || (value > (decltype(value))std::numeric_limits< decltype(integerValue) >::max())
-            ) {
-                return;
-            }
             type = Type::Integer;
-            integerValue = (decltype(integerValue))value;
         }
 
         /**
@@ -911,6 +904,13 @@ namespace Json {
         : impl_(new Impl)
     {
         impl_->type = Type::Integer;
+        impl_->integerValue = (intmax_t)value;
+    }
+
+    Value::Value(intmax_t value)
+        : impl_(new Impl)
+    {
+        impl_->type = Type::Integer;
         impl_->integerValue = value;
     }
 
@@ -918,7 +918,7 @@ namespace Json {
         : impl_(new Impl)
     {
         impl_->type = Type::Integer;
-        impl_->integerValue = (int)value;
+        impl_->integerValue = (intmax_t)value;
     }
 
     Value::Value(double value)
@@ -997,9 +997,37 @@ namespace Json {
 
     Value::operator int() const {
         if (GetType() == Type::Integer) {
+            if (
+                (impl_->integerValue < (decltype(impl_->integerValue))std::numeric_limits< int >::lowest())
+                || (impl_->integerValue > (decltype(impl_->integerValue))std::numeric_limits< int >::max())
+            ) {
+                return 0;
+            }
+            return (int)impl_->integerValue;
+        } else if (GetType() == Type::FloatingPoint) {
+            if (
+                (impl_->floatingPointValue < (decltype(impl_->floatingPointValue))std::numeric_limits< int >::lowest())
+                || (impl_->floatingPointValue > (decltype(impl_->floatingPointValue))std::numeric_limits< int >::max())
+            ) {
+                return 0;
+            }
+            return (int)impl_->floatingPointValue;
+        } else {
+            return 0;
+        }
+    }
+
+    Value::operator intmax_t() const {
+        if (GetType() == Type::Integer) {
             return impl_->integerValue;
         } else if (GetType() == Type::FloatingPoint) {
-            return (int)impl_->floatingPointValue;
+            if (
+                (impl_->floatingPointValue < (decltype(impl_->floatingPointValue))std::numeric_limits< intmax_t >::lowest())
+                || (impl_->floatingPointValue > (decltype(impl_->floatingPointValue))std::numeric_limits< intmax_t >::max())
+            ) {
+                return 0;
+            }
+            return (intmax_t)impl_->floatingPointValue;
         } else {
             return 0;
         }
@@ -1007,13 +1035,21 @@ namespace Json {
 
     Value::operator size_t() const {
         if (GetType() == Type::Integer) {
-            if (impl_->integerValue >= 0) {
-                return (size_t)impl_->integerValue;
-            } else {
+            if (
+                (impl_->integerValue < 0)
+                || (impl_->integerValue > (decltype(impl_->integerValue))std::numeric_limits< size_t >::max())
+            ) {
                 return 0;
             }
+            return (size_t)impl_->integerValue;
         } else if (GetType() == Type::FloatingPoint) {
-            return (int)impl_->floatingPointValue;
+            if (
+                (impl_->floatingPointValue < 0.0)
+                || (impl_->floatingPointValue > (decltype(impl_->floatingPointValue))std::numeric_limits< size_t >::max())
+            ) {
+                return 0;
+            }
+            return (size_t)impl_->floatingPointValue;
         } else {
             return 0;
         }
@@ -1250,7 +1286,7 @@ namespace Json {
                 } break;
 
                 case Type::Integer: {
-                    impl_->encoding = StringExtensions::sprintf("%i", impl_->integerValue);
+                    impl_->encoding = StringExtensions::sprintf("%" PRIiMAX, impl_->integerValue);
                 } break;
 
                 case Type::FloatingPoint: {

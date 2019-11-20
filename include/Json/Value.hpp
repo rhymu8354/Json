@@ -1,17 +1,17 @@
-#ifndef JSON_VALUE_HPP
-#define JSON_VALUE_HPP
+#pragma once
 
 /**
  * @file Value.hpp
  *
  * This module declares the Json::Value class.
  *
- * © 2018 by Richard Walters
+ * © 2018-2019 by Richard Walters
  */
 
 #include <memory>
 #include <ostream>
 #include <stddef.h>
+#include <stdint.h>
 #include <string>
 #include <Utf8/Utf8.hpp>
 #include <utility>
@@ -137,6 +137,15 @@ namespace Json {
         Value(int value);
 
         /**
+         * This constructs a JSON value consisting of a maximum-sized integer
+         * value.
+         *
+         * @param[in] value
+         *     This is the value to wrap in JSON.
+         */
+        Value(intmax_t value);
+
+        /**
          * This constructs a JSON value consisting of an size value.
          *
          * @param[in] value
@@ -244,6 +253,19 @@ namespace Json {
          *     it's an integer and its value is zero.
          */
         operator int() const;
+
+        /**
+         * This is the typecast to maximum-sized integer operator for the
+         * class.
+         *
+         * @return
+         *     The size equivalent of the JSON value is returned.
+         *
+         * @retval 0
+         *     This is returned if the JSON value is not an integer, or
+         *     it's an integer and its value is zero.
+         */
+        operator intmax_t() const;
 
         /**
          * This is the typecast to size operator for the class.
@@ -680,5 +702,3 @@ namespace Json {
     );
 
 }
-
-#endif /* JSON_VALUE_HPP */

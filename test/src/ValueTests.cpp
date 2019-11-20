@@ -149,6 +149,16 @@ TEST(ValueTests, ToSize) {
     ASSERT_TRUE(json == Json::Value((size_t)42));
 }
 
+TEST(ValueTests, FromIntMax) {
+    Json::Value json((intmax_t)42);
+    ASSERT_EQ("42", json.ToEncoding());
+}
+
+TEST(ValueTests, ToIntMax) {
+    auto json = Json::Value::FromEncoding("42");
+    ASSERT_TRUE(json == Json::Value((intmax_t)42));
+}
+
 TEST(ValueTests, FromFloatingPoint) {
     Json::Value json(3.14159);
     EXPECT_EQ("3.14159", json.ToEncoding());
