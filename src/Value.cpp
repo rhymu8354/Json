@@ -400,6 +400,56 @@ namespace {
 
 namespace Json {
 
+    Value::Iterator::Iterator(
+        const Json::Value* container,
+        std::vector< Value >::const_iterator&& nextArrayEntry
+    )
+        : container(container)
+        , nextArrayEntry(std::move(nextArrayEntry))
+    {
+    }
+
+    Value::Iterator::Iterator(
+        const Json::Value* container,
+        std::map< std::string, Value >::const_iterator&& nextObjectEntry
+    )
+        : container(container)
+        , nextObjectEntry(std::move(nextObjectEntry))
+    {
+    }
+
+    void Value::Iterator::operator++() {
+        if (container->GetType() == Value::Type::Array) {
+            ++nextArrayEntry;
+        } else {
+            ++nextObjectEntry;
+        }
+    }
+
+    bool Value::Iterator::operator!=(const Iterator& other) const {
+        if (container->GetType() == Value::Type::Array) {
+            return nextArrayEntry != other.nextArrayEntry;
+        } else {
+            return nextObjectEntry != other.nextObjectEntry;
+        }
+    }
+
+    auto Value::Iterator::operator*() -> Iterator& {
+        return *this;
+    }
+
+    const std::string& Value::Iterator::key() const {
+        return nextObjectEntry->first;
+    }
+
+    const Json::Value& Value::Iterator::value() const {
+        if (container->GetType() == Value::Type::Array) {
+            return *nextArrayEntry;
+        } else {
+            return nextObjectEntry->second;
+        }
+    }
+
     /**
      * This contains the private properties of a Value instance.
      */
@@ -1246,6 +1296,22 @@ namespace Json {
                 impl_->arrayValue->begin() + index
             );
             impl_->encoding.clear();
+        }
+    }
+
+    auto Value::begin() const -> Iterator {
+        if (impl_->type == Type::Array) {
+            return Iterator(this, impl_->arrayValue->begin());
+        } else {
+            return Iterator(this, impl_->objectValue->begin());
+        }
+    }
+
+    auto Value::end() const -> Iterator {
+        if (impl_->type == Type::Array) {
+            return Iterator(this, impl_->arrayValue->end());
+        } else {
+            return Iterator(this, impl_->objectValue->end());
         }
     }
 

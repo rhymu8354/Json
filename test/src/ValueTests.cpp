@@ -736,3 +736,45 @@ TEST(ValueTests, DecodeObjectWithStringValueContainingEscapedDelimiter) {
         Json::Value::FromEncoding(testEncoding)
     );
 }
+
+TEST(ValueTests, ArrayIteratorProtocol) {
+    const auto array = Json::Array({1, 2, 3});
+    std::vector< int > values;
+    for (auto arrayEntry: array) {
+        values.push_back(arrayEntry.value());
+    }
+    EXPECT_EQ(
+        std::vector< int >({1, 2, 3}),
+        values
+    );
+}
+
+TEST(ValueTests, ObjectIteratorProtocol) {
+    const auto object = Json::Object({
+        {"Answer", 42},
+        {"Greeting", "Hello, World!"},
+        {"List", Json::Array({1, 2, 3})},
+    });
+    std::vector< std::string > keys;
+    std::vector< Json::Value > values;
+    for (auto objectEntry: object) {
+        keys.push_back(objectEntry.key());
+        values.push_back(objectEntry.value());
+    }
+    EXPECT_EQ(
+        std::vector< std::string >({
+            "Answer",
+            "Greeting",
+            "List"
+        }),
+        keys
+    );
+    EXPECT_EQ(
+        std::vector< Json::Value >({
+            42,
+            "Hello, World!",
+            Json::Array({1, 2, 3})
+        }),
+        values
+    );
+}

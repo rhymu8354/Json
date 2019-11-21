@@ -8,6 +8,7 @@
  * © 2018-2019 by Richard Walters
  */
 
+#include <map>
 #include <memory>
 #include <ostream>
 #include <stddef.h>
@@ -88,6 +89,109 @@ namespace Json {
             FloatingPoint,
             Array,
             Object,
+        };
+
+        /**
+         * This is used to iterate a JSON value that is either
+         * an array or an object.
+         */
+        class Iterator {
+        public:
+            /**
+             * Construct an iterator pointing to the given position
+             * in a JSON array.
+             *
+             * @param[in] container
+             *     This points to the JSON array to iterate.
+             *
+             * @param[in] nextArrayEntry
+             *     This is the initial position to set for the iterator.
+             */
+            Iterator(
+                const Json::Value* container,
+                std::vector< Value >::const_iterator&& nextArrayEntry
+            );
+
+            /**
+             * Construct an iterator pointing to the given position
+             * in a JSON object.
+             *
+             * @param[in] container
+             *     This points to the JSON object to iterate.
+             *
+             * @param[in] nextObjectEntry
+             *     This is the initial position to set for the iterator.
+             */
+            Iterator(
+                const Json::Value* container,
+                std::map< std::string, Value >::const_iterator&& nextObjectEntry
+            );
+
+            /**
+             * This operator advances the iterator to the next value
+             * in the array or object.
+             */
+            void operator++();
+
+            /**
+             * This is the operator used to test the inequality
+             * of the iterator with another iterator.
+             *
+             * @param[in] other
+             *     This is the other iterator to which to compare this one.
+             *
+             * @return
+             *     If the two iterators are equal, false is returned.
+             *     Otherwise, true is returned.
+             */
+            bool operator!=(const Iterator& other) const;
+
+            /**
+             * This is the dereference operator.  It returns a reference
+             * back to the iterator.
+             *
+             * @return
+             *     A reference to the iterator is returned.
+             */
+            Iterator& operator*();
+
+            /**
+             * Provide access to the key of the value at the iterator's
+             * current position in the JSON object.
+             *
+             * @return
+             *     A reference to the key of the value at the iterator's
+             *     current position in the JSON object is returned.
+             */
+            const std::string& key() const;
+
+            /**
+             * Provide access to the value at the iterator's
+             * current position in the JSON array or object.
+             *
+             * @return
+             *     A reference to the value at the iterator's
+             *     current position in the JSON array or object is returned.
+             */
+            const Json::Value& value() const;
+
+        private:
+            /**
+             * This points to the JSON array or object to iterate.
+             */
+            const Json::Value* container = nullptr;
+
+            /**
+             * If a JSON array is being iterated, this points to the
+             * value at the current position in the array.
+             */
+            std::vector< Value >::const_iterator nextArrayEntry;
+
+            /**
+             * If a JSON object is being iterated, this points to the
+             * value at the current position in the object.
+             */
+            std::map< std::string, Value >::const_iterator nextObjectEntry;
         };
 
         // Lifecycle management
@@ -597,6 +701,26 @@ namespace Json {
          *     This is the name of the value to remove.
          */
         void Remove(const std::string& key);
+
+        /**
+         * Return an iterator pointing to the first value in the JSON array or
+         * object.
+         *
+         * @return
+         *     An iterator pointing to the first value in the JSON array or
+         *     object is returned.
+         */
+        Iterator begin() const;
+
+        /**
+         * Return an iterator pointing past the last value in the JSON array or
+         * object.
+         *
+         * @return
+         *     An iterator pointing past the last value in the JSON array or
+         *     object is returned.
+         */
+        Iterator end() const;
 
         /**
          * This encodes the JSON value.
