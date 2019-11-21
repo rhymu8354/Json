@@ -160,7 +160,11 @@ TEST(ValueTests, ToIntMax) {
 }
 
 TEST(ValueTests, FromFloatingPoint) {
-    Json::Value json(3.14159);
+    Json::Value json(0.0056);
+    EXPECT_EQ("0.0056", json.ToEncoding());
+    json = Json::Value(12300000.78);
+    EXPECT_EQ("12300000.78", json.ToEncoding());
+    json = Json::Value(3.14159);
     EXPECT_EQ("3.14159", json.ToEncoding());
     json = Json::Value(0.0);
     EXPECT_EQ("0.0", json.ToEncoding());

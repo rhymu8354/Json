@@ -1413,14 +1413,14 @@ namespace Json {
                         fractionRemainder /= 10;
                         if (
                             // Drop all trailing zeroes (except for the first
-                            // zero if the fractional part is exactly zero).
+                            // zero).
                             (digit != '0')
                             || !digits.empty()
-                            || (fractionRemainder == 0)
+                            || (fractionDecimalsLeft == 1)
                         ) {
                             digits.push(digit);
                         }
-                    } while (fractionRemainder > 0);
+                    } while (--fractionDecimalsLeft > 0);
                     while (!digits.empty()) {
                         impl_->encoding += digits.top();
                         digits.pop();
