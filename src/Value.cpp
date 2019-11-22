@@ -1359,75 +1359,15 @@ namespace Json {
                 } break;
 
                 case Type::FloatingPoint: {
-                    // Remove sign from value and print it if negative.
-                    auto remainder = impl_->floatingPointValue;
-                    if (remainder < 0) {
-                        impl_->encoding += '-';
-                        remainder = -remainder;
+                    impl_->encoding = StringExtensions::sprintf("%.15lg", impl_->floatingPointValue);
+                    if (impl_->encoding.find_first_not_of("0123456789-") == std::string::npos) {
+                        impl_->encoding += ".0";
                     }
-
-                    // Take whole part of value and break into digits
-                    // using modulo.
-                    //
-                    // Since this breaks digits from right to left and we need
-                    // to encode left to right, use a stack to reverse the
-                    // order.
-                    //
-                    // Count the number of significant digits remaining.
-                    auto wholeRemainder = (intmax_t)floor(remainder);
-                    int fractionDecimalsLeft = std::numeric_limits< decltype(impl_->floatingPointValue) >::digits10;
-                    std::stack< char > digits;
-                    do {
-                        const auto digit = (char)('0' + (wholeRemainder % 10));
-                        digits.push(digit);
-                        wholeRemainder /= 10;
-                        --fractionDecimalsLeft;
-                    } while (wholeRemainder > 0);
-                    while (!digits.empty()) {
-                        impl_->encoding += digits.top();
-                        digits.pop();
-                    }
-
-                    // Encode decimal point.
-                    // Hooray -- we're half-way there!
-                    impl_->encoding += '.';
-
-                    // With the fractional part, round up to the number
-                    // of significant digits remaining (or 1, if none).
-                    remainder -= floor(remainder);
-                    auto fractionRemainder = (intmax_t)round(
-                        remainder
-                        * pow(
-                            10.0,
-                            std::max(1, fractionDecimalsLeft)
-                        )
+                    std::replace(
+                        impl_->encoding.begin(),
+                        impl_->encoding.end(),
+                        ',', '.'
                     );
-
-                    // Take rounded fractional part and break into digits
-                    // using modulo.
-                    //
-                    // Since this breaks digits from right to left and we need
-                    // to encode left to right, use a stack to reverse the
-                    // order.
-                    //
-                    // Count the number of significant digits remaining.
-                    do {
-                        const auto digit = (char)('0' + (fractionRemainder % 10));
-                        fractionRemainder /= 10;
-                        if (
-                            // Drop all trailing zeroes (except for the first
-                            // zero).
-                            (digit != '0')
-                            || !digits.empty()
-                            || (fractionDecimalsLeft == 1)
-                        ) {
-                            digits.push(digit);
-                        }
-                    } while (--fractionDecimalsLeft > 0);
-                    while (!digits.empty()) {
-                        impl_->encoding += digits.top();
-                        digits.pop();
-                    }
                 } break;
 
                 case Type::Array: {
