@@ -1087,7 +1087,10 @@ namespace Json {
         if (GetType() == Type::Integer) {
             if (
                 (impl_->integerValue < 0)
-                || (impl_->integerValue > (decltype(impl_->integerValue))std::numeric_limits< size_t >::max())
+                || (
+                    (sizeof(size_t) < sizeof(intmax_t))
+                    && (impl_->integerValue > (decltype(impl_->integerValue))std::numeric_limits< size_t >::max())
+                )
             ) {
                 return 0;
             }

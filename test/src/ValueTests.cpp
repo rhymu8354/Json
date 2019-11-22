@@ -133,10 +133,10 @@ TEST(ValueTests, FromInteger) {
 }
 
 TEST(ValueTests, ToInteger) {
-    auto json = Json::Value::FromEncoding("42");
-    ASSERT_TRUE(json == Json::Value(42));
-    json = Json::Value::FromEncoding("-256");
-    ASSERT_TRUE(json == Json::Value(-256));
+    auto json = Json::Value(42);
+    EXPECT_EQ(42, (int)json);
+    json = Json::Value(-256);
+    EXPECT_EQ(-256, (int)json);
 }
 
 TEST(ValueTests, FromSize) {
@@ -145,8 +145,8 @@ TEST(ValueTests, FromSize) {
 }
 
 TEST(ValueTests, ToSize) {
-    auto json = Json::Value::FromEncoding("42");
-    ASSERT_TRUE(json == Json::Value((size_t)42));
+    auto json = Json::Value((size_t)42);
+    EXPECT_EQ((size_t)42, (size_t)json);
 }
 
 TEST(ValueTests, FromIntMax) {
@@ -155,8 +155,8 @@ TEST(ValueTests, FromIntMax) {
 }
 
 TEST(ValueTests, ToIntMax) {
-    auto json = Json::Value::FromEncoding("42");
-    ASSERT_TRUE(json == Json::Value((intmax_t)42));
+    auto json = Json::Value((intmax_t)42);
+    EXPECT_EQ((intmax_t)42, (intmax_t)json);
 }
 
 TEST(ValueTests, FromFloatingPoint) {
@@ -185,18 +185,18 @@ TEST(ValueTests, FromFloatingPoint_Danish_Locale) {
 }
 
 TEST(ValueTests, ToFloatingPoint) {
-    auto json = Json::Value::FromEncoding("3.14159");
-    ASSERT_TRUE(json == Json::Value(3.14159));
-    json = Json::Value::FromEncoding("-17.03");
-    ASSERT_TRUE(json == Json::Value(-17.03));
-    json = Json::Value::FromEncoding("5.3e-4");
-    ASSERT_TRUE(json == Json::Value(5.3e-4));
-    json = Json::Value::FromEncoding("5.012e+12");
-    ASSERT_TRUE(json == Json::Value(5.012e+12));
-    json = Json::Value::FromEncoding("32E+0");
-    ASSERT_TRUE(json == Json::Value(32E+0));
-    json = Json::Value::FromEncoding("0.0");
-    ASSERT_TRUE(json == Json::Value(0.0));
+    auto json = Json::Value(3.14159);
+    EXPECT_EQ(3.14159, (double)json);
+    json = Json::Value(-17.03);
+    EXPECT_EQ(-17.03, (double)json);
+    json = Json::Value(5.3e-4);
+    EXPECT_EQ(5.3e-4, (double)json);
+    json = Json::Value(5.012e+12);
+    EXPECT_EQ(5.012e+12, (double)json);
+    json = Json::Value(32.0);
+    EXPECT_EQ(32.0, (double)json);
+    json = Json::Value(0.0);
+    EXPECT_EQ(0.0, (double)json);
 }
 
 TEST(ValueTests, SurrogatePairEncoding) {
