@@ -782,3 +782,7 @@ TEST(ValueTests, ObjectIteratorProtocol) {
         values
     );
 }
+
+TEST(ValueTests, BadEncodings) {
+    EXPECT_EQ(Json::Value(), Json::Value::FromEncoding("\""));
+}

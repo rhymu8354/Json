@@ -1520,6 +1520,7 @@ namespace Json {
         } else if (
             (encoding[0] == '"')
             && (encoding[encoding.size() - 1] == '"')
+            && (encoding.size() > 1)
         ) {
             std::string output;
             Utf8::Utf8 utf8;
