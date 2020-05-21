@@ -826,3 +826,63 @@ namespace Json {
     );
 
 }
+
+namespace std {
+
+    using namespace Json;
+
+    /**
+     * Make Coordinator::Messaging::TwitchApi hashable.
+     */
+    template<> struct hash< Value > {
+        size_t operator()(const Value& value) const {
+            switch (value.GetType()) {
+                case Value::Type::Null: {
+                    return 1;
+                }
+
+                case Value::Type::Boolean: {
+                    return (bool)value ? 2 : 3;
+                }
+
+                case Value::Type::String: {
+                    size_t sum = 5;
+                    for (const auto& ch: (std::string)value) {
+                        sum += (size_t)ch;
+                    }
+                    return sum;
+                }
+
+                case Value::Type::Integer: {
+                    return (size_t)value * 7 + 4000000;
+                }
+
+                case Value::Type::FloatingPoint: {
+                    return (size_t)((double)value * 1000000.0);
+                }
+
+                case Value::Type::Array: {
+                    size_t sum = 6;
+                    for (const auto entry: value) {
+                        sum += std::hash< Json::Value >()(entry.value());
+                    }
+                    return sum;
+                }
+
+                case Value::Type::Object: {
+                    size_t sum = 7;
+                    for (const auto entry: value) {
+                        sum += std::hash< Json::Value >()(entry.key()) * 13;
+                        sum += std::hash< Json::Value >()(entry.value()) * 42;
+                    }
+                    return sum;
+                }
+
+                default: {
+                    return 0;
+                }
+            }
+        }
+    };
+
+}
